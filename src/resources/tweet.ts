@@ -1,6 +1,6 @@
 import type { TweetAPI } from "../client";
-import type { ApiResponse } from "../types/common";
-import type { Tweet, TweetTranslation } from "../types/responses";
+import type { ApiResponse, PaginatedResponse } from "../types/common";
+import type { Tweet, User } from "../types/responses";
 import type {
   GetTweetDetailsParams,
   GetTweetDetailsByIdsParams,
@@ -12,7 +12,7 @@ import type {
 export class TweetResource {
   constructor(private readonly client: TweetAPI) {}
 
-  /** Get tweet details and conversation thread */
+  /** Get tweet details with conversation thread (replies) */
   async getDetailsAndConversation(params: GetTweetDetailsParams) {
     return this.client.get<
       ApiResponse<{
@@ -25,7 +25,7 @@ export class TweetResource {
 
   /** Get details for multiple tweets by IDs (comma-separated, max 200) */
   async getDetailsByIds(params: GetTweetDetailsByIdsParams) {
-    return this.client.get<ApiResponse<{ tweets: Tweet[] }>>(
+    return this.client.get<ApiResponse<{ tweets: (Tweet | null)[] }>>(
       "/tw-v2/tweet/details-by-ids",
       params,
     );
@@ -33,27 +33,23 @@ export class TweetResource {
 
   /** Get users who retweeted a tweet */
   async getRetweets(params: GetRetweetsParams) {
-    return this.client.get<
-      ApiResponse<{
-        users: Record<string, unknown>[];
-        nextCursor?: string;
-      }>
-    >("/tw-v2/tweet/retweets", params);
+    return this.client.get<PaginatedResponse<User>>(
+      "/tw-v2/tweet/retweets",
+      params,
+    );
   }
 
   /** Get quote tweets for a tweet */
   async getQuotes(params: GetQuotesParams) {
-    return this.client.get<
-      ApiResponse<{
-        tweets: Tweet[];
-        nextCursor?: string;
-      }>
-    >("/tw-v2/tweet/quotes", params);
+    return this.client.get<PaginatedResponse<Tweet>>(
+      "/tw-v2/tweet/quotes",
+      params,
+    );
   }
 
-  /** Translate a tweet to a different language */
+  /** Translate a tweet. Returns raw translation data from Twitter. */
   async translate(params: TranslateTweetParams) {
-    return this.client.post_<ApiResponse<TweetTranslation>>(
+    return this.client.post_<ApiResponse<unknown>>(
       "/tw-v2/tweet/translate",
       params,
     );

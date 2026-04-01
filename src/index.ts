@@ -57,7 +57,6 @@ export type {
 export type {
   ApiResponse,
   PaginatedResponse,
-  SearchResponse,
   ActionResponse,
   Pagination,
   ErrorDetails,

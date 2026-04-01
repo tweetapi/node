@@ -13,7 +13,7 @@ export interface GetByUserIdParams {
 }
 
 export interface GetByUserIdsParams {
-  userIds: string;
+  userIds: string[];
 }
 
 export interface GetUserTweetsParams {

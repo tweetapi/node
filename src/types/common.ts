@@ -11,18 +11,6 @@ export interface PaginatedResponse<T> {
   pagination: Pagination;
 }
 
-/** Search response with metadata */
-export interface SearchResponse<T> {
-  data: T[];
-  pagination: Pagination;
-  meta: {
-    query: string;
-    resultType: "tweets" | "users" | "media" | "all";
-    resultCount: number;
-    completedIn: number;
-  };
-}
-
 /** Action response for interactions (like, retweet, follow, etc.) */
 export interface ActionResponse {
   data: {

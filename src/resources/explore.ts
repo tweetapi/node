@@ -1,5 +1,5 @@
 import type { TweetAPI } from "../client";
-import type { SearchResponse } from "../types/common";
+import type { PaginatedResponse } from "../types/common";
 import type { Tweet, User } from "../types/responses";
 import type { SearchParams } from "../types/params";
 
@@ -8,6 +8,6 @@ export class ExploreResource {
 
   /** Search for tweets, users, photos, or videos */
   async search(params: SearchParams) {
-    return this.client.get<SearchResponse<Tweet | User>>("/tw-v2/search", params);
+    return this.client.get<PaginatedResponse<Tweet | User>>("/tw-v2/search", params);
   }
 }

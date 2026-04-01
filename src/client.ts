@@ -95,7 +95,13 @@ export class TweetAPI {
     if (params) {
       for (const [key, value] of Object.entries(params)) {
         if (value !== undefined && value !== null) {
-          url.searchParams.set(key, String(value));
+          if (Array.isArray(value)) {
+            for (const item of value) {
+              url.searchParams.append(key, String(item));
+            }
+          } else {
+            url.searchParams.set(key, String(value));
+          }
         }
       }
     }
