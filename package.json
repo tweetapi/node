@@ -1,0 +1,62 @@
+{
+  "name": "tweetapi-node",
+  "version": "1.0.0",
+  "description": "Official Node.js SDK for the TweetAPI — Twitter/X Data API for developers and researchers",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "twitter",
+    "twitter api",
+    "x api",
+    "tweet api",
+    "tweetapi",
+    "twitter data",
+    "social media api",
+    "twitter sdk",
+    "twitter client",
+    "twitter wrapper",
+    "twitter library",
+    "x platform",
+    "tweets",
+    "twitter scraper"
+  ],
+  "author": "TweetAPI <support@tweetapi.com>",
+  "license": "MIT",
+  "homepage": "https://tweetapi.com?utm_source=npm&utm_medium=readme&utm_campaign=node-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tweetapi/tweetapi-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tweetapi/tweetapi-node/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
