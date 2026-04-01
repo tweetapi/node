@@ -235,7 +235,7 @@ const client = new TweetAPI({
 - [Full Documentation](https://tweetapi.com/docs?utm_source=github&utm_medium=readme&utm_campaign=node-sdk)
 - [Get API Key (Free)](https://tweetapi.com?utm_source=github&utm_medium=readme&utm_campaign=node-sdk)
 - [Dashboard](https://tweetapi.com/dashboard?utm_source=github&utm_medium=readme&utm_campaign=node-sdk)
-- [Python SDK](https://github.com/tweetapi/tweetapi-python)
+- [Python SDK](https://github.com/tweetapi/python)
 
 ## License
 

@@ -45,10 +45,10 @@
   "homepage": "https://tweetapi.com?utm_source=npm&utm_medium=readme&utm_campaign=node-sdk",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tweetapi/tweetapi-node.git"
+    "url": "https://github.com/tweetapi/node.git"
   },
   "bugs": {
-    "url": "https://github.com/tweetapi/tweetapi-node/issues"
+    "url": "https://github.com/tweetapi/node/issues"
   },
   "engines": {
     "node": ">=18.0.0"
