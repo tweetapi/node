@@ -38,9 +38,11 @@ const nextPage = await client.user.getFollowers({
 
 - **70+ endpoints** covering users, tweets, posts, interactions, DMs, communities, spaces, and search
 - **Full TypeScript types** for all requests and responses — autocomplete everything
+- **Automatic retry with backoff** on rate limits (429) and server errors (5xx)
+- **Auto-pagination helpers** — iterate all pages with `for await...of`
 - **Solid error handling** with typed exceptions (`RateLimitError`, `NotFoundError`, etc.)
+- **Rate limit awareness** — `retryAfter` respected automatically, state exposed via `client.rateLimitInfo`
 - **Zero dependencies** — uses native `fetch` (Node.js 18+)
-- **Pagination support** with cursor-based navigation
 - **ESM and CommonJS** dual build
 
 ## API Reference
@@ -170,9 +172,76 @@ const nextPage = await client.user.getFollowers({
 | `client.dm.getDmUserUpdates({ authToken, cursor })` | Get DM user updates |
 | `client.dm.acceptConversation({ authToken, conversationId })` | Accept a conversation |
 
+## Auto-Pagination
+
+Use the `paginate()` and `paginatePages()` helpers to iterate through all pages automatically:
+
+```typescript
+import TweetAPI, { paginate, paginatePages } from "tweetapi-node";
+
+const client = new TweetAPI({ apiKey: "YOUR_API_KEY" });
+
+// Iterate individual items across all pages
+for await (const user of paginate(
+  (cursor) => client.user.getFollowers({ userId: "123456", cursor }),
+)) {
+  console.log(user.username);
+}
+
+// Iterate full pages (access page-level data)
+for await (const page of paginatePages(
+  (cursor) => client.explore.search({ query: "bitcoin", type: "Latest", cursor }),
+  { maxPages: 5 },  // optional: limit number of pages
+)) {
+  console.log(`Got ${page.data.length} results`);
+  console.log(`Next cursor: ${page.pagination.nextCursor}`);
+}
+```
+
+Works with any paginated endpoint — followers, tweets, search results, list members, community posts, etc.
+
+## Automatic Retry with Backoff
+
+The SDK automatically retries on transient errors with exponential backoff:
+
+- **429 (Rate Limit)** — waits the `retryAfter` duration from the API, then retries
+- **5xx (Server Error)** — retries with exponential backoff + jitter
+- **Network errors** — retries on timeouts and connection failures
+- **4xx (Client Error)** — never retried (400, 401, 403, 404 fail immediately)
+
+Default: 3 retries, 2x backoff, 1s initial delay, 30s max delay.
+
+```typescript
+// Customize retry behavior
+const client = new TweetAPI({
+  apiKey: "YOUR_API_KEY",
+  retry: {
+    maxRetries: 5,           // default: 3
+    initialRetryDelay: 2000, // default: 1000ms
+    backoffMultiplier: 3,    // default: 2
+    maxRetryDelay: 60000,    // default: 30000ms
+  },
+});
+
+// Disable retries entirely
+const client = new TweetAPI({
+  apiKey: "YOUR_API_KEY",
+  retry: false,
+});
+```
+
+### Rate Limit Awareness
+
+After a 429 response, the SDK exposes the last known rate limit state:
+
+```typescript
+console.log(client.rateLimitInfo);
+// { retryAfter: 30, timestamp: 1712345678000 } — or null if no 429 encountered
+```
+
 ## Error Handling
 
-The SDK throws typed errors you can catch and handle:
+The SDK throws typed errors you can catch and handle. With automatic retries enabled (default), you'll only see these after all retry attempts are exhausted:
 
 ```typescript
 import TweetAPI, {
@@ -189,9 +258,7 @@ try {
   const user = await client.user.getByUsername({ username: "elonmusk" });
 } catch (error) {
   if (error instanceof RateLimitError) {
-    // Wait and retry
     console.log(`Rate limited. Retry in ${error.retryAfter}s`);
-    await new Promise((r) => setTimeout(r, error.retryAfter * 1000));
   } else if (error instanceof NotFoundError) {
     console.log("User not found");
   } else if (error instanceof AuthenticationError) {
@@ -203,7 +270,6 @@ try {
   } else if (error instanceof ConnectionError) {
     console.log("Network error — check your connection");
   } else if (error instanceof TweetAPIError) {
-    // Catch-all for any other API error
     console.log(`Error [${error.code}]: ${error.message}`);
   }
 }
@@ -222,6 +288,12 @@ const client = new TweetAPI({
   apiKey: "YOUR_API_KEY",       // Required
   baseUrl: "https://...",       // Optional (default: https://api.tweetapi.com)
   timeout: 30000,               // Optional (default: 30000ms)
+  retry: {                      // Optional (default: { maxRetries: 3 })
+    maxRetries: 3,
+    initialRetryDelay: 1000,
+    backoffMultiplier: 2,
+    maxRetryDelay: 30000,
+  },
 });
 ```
 

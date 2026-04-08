@@ -1,4 +1,4 @@
-import type { ErrorResponseBody } from "./types/common";
+import type { ErrorResponseBody, RetryOptions, RateLimitInfo } from "./types/common";
 import {
   TweetAPIError,
   AuthenticationError,
@@ -29,12 +29,19 @@ export interface TweetAPIOptions {
   baseUrl?: string;
   /** Request timeout in milliseconds (default: 30000) */
   timeout?: number;
+  /** Retry configuration. Pass `false` to disable retries entirely. */
+  retry?: RetryOptions | false;
 }
 
 export class TweetAPI {
   private readonly apiKey: string;
   private readonly baseUrl: string;
   private readonly timeout: number;
+  private readonly maxRetries: number;
+  private readonly backoffMultiplier: number;
+  private readonly initialRetryDelay: number;
+  private readonly maxRetryDelay: number;
+  private _rateLimitInfo: RateLimitInfo | null = null;
 
   /** User profile data, followers, following, subscriptions */
   readonly user: UserResource;
@@ -70,6 +77,13 @@ export class TweetAPI {
       "",
     );
     this.timeout = options.timeout ?? 30000;
+
+    const retryOpts =
+      options.retry === false ? { maxRetries: 0 } : (options.retry ?? {});
+    this.maxRetries = retryOpts.maxRetries ?? 3;
+    this.backoffMultiplier = retryOpts.backoffMultiplier ?? 2;
+    this.initialRetryDelay = retryOpts.initialRetryDelay ?? 1000;
+    this.maxRetryDelay = retryOpts.maxRetryDelay ?? 30000;
 
     this.user = new UserResource(this);
     this.tweet = new TweetResource(this);
@@ -131,44 +145,89 @@ export class TweetAPI {
     });
   }
 
+  /** Last known rate limit info from a 429 response, or `null`. */
+  get rateLimitInfo(): RateLimitInfo | null {
+    return this._rateLimitInfo;
+  }
+
   private async request<T>(url: string, init: RequestInit): Promise<T> {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.timeout);
+    let lastError: TweetAPIError | null = null;
 
-    try {
-      const response = await fetch(url, {
-        ...init,
-        signal: controller.signal,
-        headers: {
-          "X-API-Key": this.apiKey,
-          ...init.headers,
-        },
-      });
+    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), this.timeout);
 
-      if (!response.ok) {
-        await this.handleErrorResponse(response);
+      try {
+        const response = await fetch(url, {
+          ...init,
+          signal: controller.signal,
+          headers: {
+            "X-API-Key": this.apiKey,
+            ...init.headers,
+          },
+        });
+        clearTimeout(timer);
+
+        if (!response.ok) {
+          await this.handleErrorResponse(response);
+        }
+
+        return (await response.json()) as T;
+      } catch (error) {
+        clearTimeout(timer);
+        const normalized = this.normalizeError(error);
+        lastError = normalized;
+
+        if (normalized instanceof RateLimitError) {
+          this._rateLimitInfo = {
+            retryAfter: normalized.retryAfter,
+            timestamp: Date.now(),
+          };
+        }
+
+        if (attempt < this.maxRetries && this.isRetryable(normalized)) {
+          await new Promise((r) =>
+            setTimeout(r, this.calculateRetryDelay(normalized, attempt)),
+          );
+          continue;
+        }
+
+        throw normalized;
       }
-
-      return (await response.json()) as T;
-    } catch (error) {
-      if (error instanceof TweetAPIError) {
-        throw error;
-      }
-
-      if (error instanceof DOMException && error.name === "AbortError") {
-        throw new ConnectionError(
-          `Request timed out after ${this.timeout}ms`,
-          error,
-        );
-      }
-
-      throw new ConnectionError(
-        `Network error: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : new Error(String(error)),
-      );
-    } finally {
-      clearTimeout(timer);
     }
+
+    throw lastError!;
+  }
+
+  private normalizeError(error: unknown): TweetAPIError {
+    if (error instanceof TweetAPIError) return error;
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return new ConnectionError(
+        `Request timed out after ${this.timeout}ms`,
+        error,
+      );
+    }
+    return new ConnectionError(
+      `Network error: ${error instanceof Error ? error.message : String(error)}`,
+      error instanceof Error ? error : new Error(String(error)),
+    );
+  }
+
+  private isRetryable(error: TweetAPIError): boolean {
+    if (error instanceof ConnectionError) return true;
+    if (error.statusCode === 429) return true;
+    if (error.statusCode >= 500) return true;
+    return false;
+  }
+
+  private calculateRetryDelay(error: TweetAPIError, attempt: number): number {
+    if (error instanceof RateLimitError && error.retryAfter > 0) {
+      return Math.min(error.retryAfter * 1000, this.maxRetryDelay);
+    }
+    const baseDelay =
+      this.initialRetryDelay * Math.pow(this.backoffMultiplier, attempt);
+    const capped = Math.min(baseDelay, this.maxRetryDelay);
+    return capped + Math.random() * capped * 0.25;
   }
 
   private async handleErrorResponse(response: Response): Promise<never> {

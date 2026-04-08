@@ -153,7 +153,7 @@ describe("Error handling", () => {
 
   beforeEach(() => {
     mockFetch.mockReset();
-    client = new TweetAPI({ apiKey: "test-key" });
+    client = new TweetAPI({ apiKey: "test-key", retry: false });
   });
 
   it("should throw ValidationError on 400", async () => {

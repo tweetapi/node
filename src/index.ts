@@ -62,10 +62,16 @@ export type {
   ErrorDetails,
   ErrorResponseBody,
   ActionType,
+  RetryOptions,
+  RateLimitInfo,
 } from "./types/common";
 
 // Param types
 export type * from "./types/params";
+
+// Pagination helpers
+export { paginate, paginatePages } from "./pagination";
+export type { PaginateOptions } from "./pagination";
 
 // Default export
 export { TweetAPI as default } from "./client";

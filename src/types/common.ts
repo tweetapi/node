@@ -30,6 +30,28 @@ export interface Pagination {
   prevCursor: string | null;
 }
 
+// ─── Retry & Rate Limit ─────────────────────────────────────────────────
+
+/** Configuration for automatic retry with exponential backoff. */
+export interface RetryOptions {
+  /** Maximum number of retry attempts. Set to 0 to disable retries. Default: 3 */
+  maxRetries?: number;
+  /** Multiplier for exponential backoff. Default: 2 */
+  backoffMultiplier?: number;
+  /** Initial retry delay in milliseconds. Default: 1000 */
+  initialRetryDelay?: number;
+  /** Maximum retry delay in milliseconds (cap). Default: 30000 */
+  maxRetryDelay?: number;
+}
+
+/** Rate limit information captured from a 429 response. */
+export interface RateLimitInfo {
+  /** Seconds until the rate limit resets */
+  retryAfter: number;
+  /** Timestamp (ms) when this info was captured */
+  timestamp: number;
+}
+
 // ─── Error Types ─────────────────────────────────────────────────────────────
 
 export interface ErrorDetails {
