@@ -117,6 +117,7 @@ export interface Tweet {
     username: string;
   } | null;
   quotedTweet: Tweet | null;
+  reactionContext: ReactionContext | null;
   retweetedTweet: Tweet | null;
 
   likeCount: number;
@@ -183,6 +184,21 @@ export interface Tweet {
 
   createdAt: string | null;
   place: Place | null;
+}
+
+export interface ReactionTargetAuthor {
+  id: string;
+  username: string;
+  name: string;
+  avatar: string | null;
+  isBlueVerified: boolean;
+}
+
+export interface ReactionContext {
+  isReaction: true;
+  targetTweetId: string | null;
+  targetTweetUrl: string | null;
+  targetAuthor: ReactionTargetAuthor | null;
 }
 
 export interface TweetTranslation {
@@ -288,13 +304,32 @@ export interface Card {
     playerUrl: string | null;
     playerWidth: number | null;
     playerHeight: number | null;
+    videoUrl?: string | null;
+    site?: string | null;
+    creatorId?: string | null;
+    creatorUsername?: string | null;
     appId: string | null;
     appName: string | null;
     appStarRating: number | null;
     appPriceAmount: number | null;
     appPriceCurrency: string | null;
   };
+  cardPlatform?: {
+    platform: {
+      device: {
+        name: string;
+        version: string;
+      };
+      audience: {
+        name: string;
+      };
+    };
+  } | null;
   vanityUrl: string | null;
+  userRefsResults?: User[] | null;
+  imageUrl?: string;
+  videoUrl?: string;
+  playerUrl?: string;
 }
 
 // ─── Place ───────────────────────────────────────────────────────────────────

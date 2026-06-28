@@ -19,6 +19,7 @@ export { TweetResource } from "./resources/tweet";
 export { PostResource } from "./resources/post";
 export { InteractionResource } from "./resources/interaction";
 export { ListResource } from "./resources/list";
+export { ProfileResource } from "./resources/profile";
 export { CommunityResource } from "./resources/community";
 export { SpaceResource } from "./resources/space";
 export { ExploreResource } from "./resources/explore";
@@ -32,6 +33,8 @@ export type {
   UserRelationship,
   UserAnalytics,
   Tweet,
+  ReactionContext,
+  ReactionTargetAuthor,
   TweetTranslation,
   Media,
   MediaSize,

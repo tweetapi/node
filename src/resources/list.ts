@@ -1,11 +1,14 @@
 import type { TweetAPI } from "../client";
-import type { ApiResponse, PaginatedResponse } from "../types/common";
+import type { ActionResponse, ApiResponse, PaginatedResponse } from "../types/common";
 import type { List, Tweet, User } from "../types/responses";
 import type {
+  AddListMemberParams,
+  CreateListParams,
   GetListDetailsParams,
-  GetListTweetsParams,
-  GetListMembersParams,
   GetListFollowersParams,
+  GetListMembersParams,
+  GetListTweetsParams,
+  RemoveListMemberParams,
 } from "../types/params";
 
 export class ListResource {
@@ -29,5 +32,23 @@ export class ListResource {
   /** Get followers of a list */
   async getFollowers(params: GetListFollowersParams) {
     return this.client.get<PaginatedResponse<User>>("/tw-v2/list/followers", params);
+  }
+
+  /** Create a list */
+  async create(params: CreateListParams) {
+    return this.client.post_<ApiResponse<List>>("/tw-v2/list/create", params);
+  }
+
+  /** Add a user to a list */
+  async addMember(params: AddListMemberParams) {
+    return this.client.post_<ActionResponse>("/tw-v2/list/add-member", params);
+  }
+
+  /** Remove a user from a list */
+  async removeMember(params: RemoveListMemberParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/list/remove-member",
+      params,
+    );
   }
 }

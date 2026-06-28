@@ -4,7 +4,6 @@ import type {
   User,
   Tweet,
   UserRelationship,
-  UserAnalytics,
 } from "../types/responses";
 import type {
   GetByUsernameParams,

@@ -13,6 +13,8 @@ import type {
   SearchCommunityParams,
   CreateCommunityPostParams,
   CreateCommunityPostWithMediaParams,
+  CreateCommunityQuoteParams,
+  CreateCommunityQuoteWithMediaParams,
   ReplyCommunityPostParams,
   ReplyCommunityPostWithMediaParams,
   JoinCommunityParams,
@@ -66,6 +68,22 @@ export class CommunityResource {
   async createPostWithMedia(params: CreateCommunityPostWithMediaParams) {
     return this.client.post_<ActionResponse>(
       "/tw-v2/interaction/create-community-post-with-media",
+      params,
+    );
+  }
+
+  /** Create a quote post in a community */
+  async createQuote(params: CreateCommunityQuoteParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/create-community-quote",
+      params,
+    );
+  }
+
+  /** Create a quote post with media in a community */
+  async createQuoteWithMedia(params: CreateCommunityQuoteWithMediaParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/create-community-quote-with-media",
       params,
     );
   }

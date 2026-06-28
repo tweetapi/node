@@ -21,6 +21,17 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
+function lastFetchCall() {
+  const call = mockFetch.mock.calls.at(-1);
+  if (!call) throw new Error("Expected fetch to be called");
+  return call;
+}
+
+function lastRequestBody() {
+  const [, options] = lastFetchCall();
+  return JSON.parse(options.body);
+}
+
 describe("TweetAPI Client", () => {
   let client: TweetAPI;
 
@@ -145,6 +156,230 @@ describe("POST requests", () => {
 
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
     expect(body).not.toHaveProperty("disableLinkPreview");
+  });
+
+  it("should send canonical list create request", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({ data: { id: "list123", name: "Research" } }),
+    );
+
+    await client.list.create({
+      authToken: "auth123",
+      name: "Research",
+      description: "Markets",
+      isPrivate: true,
+    });
+
+    const [url, options] = lastFetchCall();
+    expect(url).toContain("/tw-v2/list/create");
+    expect(options.method).toBe("POST");
+    expect(lastRequestBody()).toEqual({
+      authToken: "auth123",
+      name: "Research",
+      description: "Markets",
+      isPrivate: true,
+    });
+  });
+
+  it("should send canonical list add member request", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        data: { id: "list123", action: "add_list_member", timestamp: "2025-01-01", success: true },
+      }),
+    );
+
+    await client.list.addMember({
+      authToken: "auth123",
+      listId: "123",
+      userId: "456",
+    });
+
+    const [url] = lastFetchCall();
+    expect(url).toContain("/tw-v2/list/add-member");
+    expect(lastRequestBody()).toEqual({
+      authToken: "auth123",
+      listId: "123",
+      userId: "456",
+    });
+  });
+
+  it("should send canonical list remove member request", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        data: { id: "list123", action: "remove_list_member", timestamp: "2025-01-01", success: true },
+      }),
+    );
+
+    await client.list.removeMember({
+      authToken: "auth123",
+      listId: "123",
+      userId: "456",
+      proxy: "host:port@user:pass",
+    });
+
+    const [url] = lastFetchCall();
+    expect(url).toContain("/tw-v2/list/remove-member");
+    expect(lastRequestBody()).toEqual({
+      authToken: "auth123",
+      listId: "123",
+      userId: "456",
+      proxy: "host:port@user:pass",
+    });
+  });
+
+  it("should send profile update request and strip undefined fields", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({ data: { id: "user123", username: "test", name: "Updated" } }),
+    );
+
+    await client.profile.update({
+      authToken: "auth123",
+      name: "Updated",
+      bio: undefined,
+      website: "",
+    });
+
+    const [url] = lastFetchCall();
+    expect(url).toContain("/tw-v2/profile/update");
+    expect(lastRequestBody()).toEqual({
+      authToken: "auth123",
+      name: "Updated",
+      website: "",
+    });
+  });
+
+  it("should send profile avatar request", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({ data: { id: "user123", username: "test", name: "Test" } }),
+    );
+
+    await client.profile.avatar({
+      authToken: "auth123",
+      media: { url: "https://example.com/avatar.jpg", type: "image/jpeg" },
+      proxy: "host:port@user:pass",
+    });
+
+    const [url] = lastFetchCall();
+    expect(url).toContain("/tw-v2/profile/avatar");
+    expect(lastRequestBody()).toEqual({
+      authToken: "auth123",
+      media: { url: "https://example.com/avatar.jpg", type: "image/jpeg" },
+      proxy: "host:port@user:pass",
+    });
+  });
+
+  it("should send profile banner request", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({ data: { id: "user123", username: "test", name: "Test" } }),
+    );
+
+    await client.profile.banner({
+      authToken: "auth123",
+      media: { data: "base64-image", type: "image/png" },
+    });
+
+    const [url] = lastFetchCall();
+    expect(url).toContain("/tw-v2/profile/banner");
+    expect(lastRequestBody()).toEqual({
+      authToken: "auth123",
+      media: { data: "base64-image", type: "image/png" },
+    });
+  });
+
+  it("should send community quote request", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        data: { id: "tweet123", action: "create_community_quote", timestamp: "2025-01-01", success: true },
+      }),
+    );
+
+    await client.community.createQuote({
+      authToken: "auth123",
+      text: "Community quote",
+      attachmentUrl: "https://x.com/example/status/TWEET_ID",
+      communityId: "COMMUNITY_ID",
+      proxy: "host:port@user:pass",
+    });
+
+    const [url] = lastFetchCall();
+    expect(url).toContain("/tw-v2/interaction/create-community-quote");
+    expect(lastRequestBody()).toEqual({
+      authToken: "auth123",
+      text: "Community quote",
+      attachmentUrl: "https://x.com/example/status/TWEET_ID",
+      communityId: "COMMUNITY_ID",
+      proxy: "host:port@user:pass",
+    });
+  });
+
+  it("should send community quote with media request", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        data: {
+          id: "tweet123",
+          action: "create_community_quote_with_media",
+          timestamp: "2025-01-01",
+          success: true,
+        },
+      }),
+    );
+
+    await client.community.createQuoteWithMedia({
+      authToken: "auth123",
+      text: "Community quote",
+      attachmentUrl: "https://x.com/example/status/TWEET_ID",
+      communityId: "COMMUNITY_ID",
+      media: [{ media_id: "TWITTER_MEDIA_ID" }],
+      proxy: "host:port@user:pass",
+      disableLinkPreview: undefined,
+    });
+
+    const [url] = lastFetchCall();
+    expect(url).toContain("/tw-v2/interaction/create-community-quote-with-media");
+    expect(lastRequestBody()).toEqual({
+      authToken: "auth123",
+      text: "Community quote",
+      attachmentUrl: "https://x.com/example/status/TWEET_ID",
+      communityId: "COMMUNITY_ID",
+      media: [{ media_id: "TWITTER_MEDIA_ID" }],
+      proxy: "host:port@user:pass",
+    });
+  });
+
+  it("should preserve replyOption in create post body", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        data: { id: "tweet123", action: "create_tweet", timestamp: "2025-01-01", success: true },
+      }),
+    );
+
+    await client.post.createPost({
+      authToken: "auth123",
+      text: "Regions only",
+      proxy: "host:port@user:pass",
+      replyOption: { mode: "regions", regions: ["NAM", "EUR"] },
+    });
+
+    const body = lastRequestBody();
+    expect(body.replyOption).toEqual({ mode: "regions", regions: ["NAM", "EUR"] });
+  });
+
+  it("should preserve direct media_id in create post with media body", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        data: { id: "tweet123", action: "create_tweet", timestamp: "2025-01-01", success: true },
+      }),
+    );
+
+    await client.post.createPostWithMedia({
+      authToken: "auth123",
+      text: "Media",
+      media: [{ media_id: "TWITTER_MEDIA_ID" }],
+      proxy: "host:port@user:pass",
+    });
+
+    const body = lastRequestBody();
+    expect(body.media).toEqual([{ media_id: "TWITTER_MEDIA_ID" }]);
   });
 });
 
@@ -280,12 +515,13 @@ describe("Error handling", () => {
 describe("Resource classes exist", () => {
   const client = new TweetAPI({ apiKey: "key" });
 
-  it("should have all 11 resource classes", () => {
+  it("should have all 12 resource classes", () => {
     expect(client.user).toBeDefined();
     expect(client.tweet).toBeDefined();
     expect(client.post).toBeDefined();
     expect(client.interaction).toBeDefined();
     expect(client.list).toBeDefined();
+    expect(client.profile).toBeDefined();
     expect(client.community).toBeDefined();
     expect(client.space).toBeDefined();
     expect(client.explore).toBeDefined();

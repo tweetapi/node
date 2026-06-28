@@ -25,9 +25,9 @@ console.log(user.data.followerCount); // 180000000
 const results = await client.explore.search({ query: "bitcoin", type: "Latest" });
 
 // Get followers with pagination
-const followers = await client.user.getFollowers({ userId: "123456" });
+const followers = await client.user.getFollowers({ userId: "USER_ID" });
 const nextPage = await client.user.getFollowers({
-  userId: "123456",
+  userId: "USER_ID",
   cursor: followers.pagination.nextCursor!,
 });
 ```
@@ -68,6 +68,14 @@ const nextPage = await client.user.getFollowers({
 | `client.user.checkFollow({ subjectId, targetId })` | Check follow relationship |
 | `client.user.aboutAccount({ username })` | Get account transparency info |
 
+### Profile
+
+| Method | Description |
+|--------|-------------|
+| `client.profile.update({ authToken, name, bio, location, website })` | Update authenticated profile fields |
+| `client.profile.avatar({ authToken, media })` | Update profile avatar from image URL or base64 data |
+| `client.profile.banner({ authToken, media })` | Update profile banner from image URL or base64 data |
+
 ### Tweet
 
 | Method | Description |
@@ -82,12 +90,38 @@ const nextPage = await client.user.getFollowers({
 
 | Method | Description |
 |--------|-------------|
-| `client.post.createPost({ authToken, text, proxy })` | Create a tweet |
-| `client.post.createPostQuote({ authToken, text, attachmentUrl, proxy })` | Create a quote tweet |
+| `client.post.createPost({ authToken, text, proxy, replyOption })` | Create a tweet |
+| `client.post.createPostQuote({ authToken, text, attachmentUrl, proxy, replyOption })` | Create a quote tweet |
 | `client.post.createPostWithMedia({ authToken, text, media, proxy })` | Create a tweet with media |
 | `client.post.replyPost({ authToken, text, tweetId, proxy })` | Reply to a tweet |
 | `client.post.replyPostWithMedia({ authToken, text, tweetId, media, proxy })` | Reply with media |
 | `client.post.deletePost({ authToken, tweetId })` | Delete a tweet |
+
+```typescript
+// Restrict who can reply to a new tweet
+await client.post.createPost({
+  authToken: "TWITTER_AUTH_TOKEN",
+  text: "Shipping with TweetAPI",
+  proxy: "host:port@user:pass",
+  replyOption: { mode: "verified_accounts" },
+});
+
+// Reuse caller-managed Twitter media by media_id_string
+await client.post.createPostWithMedia({
+  authToken: "TWITTER_AUTH_TOKEN",
+  text: "Direct media ID",
+  media: [{ media_id: "TWITTER_MEDIA_ID" }],
+  proxy: "host:port@user:pass",
+});
+
+// Or let TweetAPI upload media from URL/base64
+await client.post.createPostWithMedia({
+  authToken: "TWITTER_AUTH_TOKEN",
+  text: "Uploaded media",
+  media: [{ url: "https://example.com/image.jpg", type: "image/jpeg" }],
+  proxy: "host:port@user:pass",
+});
+```
 
 ### Interaction
 
@@ -101,8 +135,8 @@ const nextPage = await client.user.getFollowers({
 | `client.interaction.deleteBookmark({ authToken, tweetId })` | Remove bookmark |
 | `client.interaction.follow({ authToken, userId })` | Follow a user |
 | `client.interaction.unfollow({ authToken, userId })` | Unfollow a user |
-| `client.interaction.addMemberToList({ authToken, listId, userId })` | Add user to list |
-| `client.interaction.removeMemberFromList({ authToken, listId, userId })` | Remove user from list |
+| `client.interaction.addMemberToList({ authToken, listId, userId })` | Legacy alias for adding user to list |
+| `client.interaction.removeMemberFromList({ authToken, listId, userId })` | Legacy alias for removing user from list |
 | `client.interaction.getNotifications({ authToken })` | Get notifications |
 | `client.interaction.getUserAnalytics({ authToken })` | Get account analytics |
 
@@ -114,6 +148,45 @@ const nextPage = await client.user.getFollowers({
 | `client.list.getTweets({ listId })` | Get tweets in a list |
 | `client.list.getMembers({ listId })` | Get list members |
 | `client.list.getFollowers({ listId })` | Get list followers |
+| `client.list.create({ authToken, name, description, isPrivate })` | Create a list |
+| `client.list.addMember({ authToken, listId, userId })` | Add user to list |
+| `client.list.removeMember({ authToken, listId, userId })` | Remove user from list |
+
+```typescript
+const list = await client.list.create({
+  authToken: "TWITTER_AUTH_TOKEN",
+  name: "Research",
+  description: "Accounts to monitor",
+  isPrivate: true,
+});
+
+await client.list.addMember({
+  authToken: "TWITTER_AUTH_TOKEN",
+  listId: list.data.id,
+  userId: "USER_ID",
+});
+```
+
+### Profile Examples
+
+```typescript
+await client.profile.update({
+  authToken: "TWITTER_AUTH_TOKEN",
+  name: "TweetAPI Research",
+  bio: "Twitter/X data workflows",
+  website: "https://tweetapi.com",
+});
+
+await client.profile.avatar({
+  authToken: "TWITTER_AUTH_TOKEN",
+  media: { url: "https://example.com/avatar.jpg", type: "image/jpeg" },
+});
+
+await client.profile.banner({
+  authToken: "TWITTER_AUTH_TOKEN",
+  media: { data: "BASE64_IMAGE_DATA", type: "image/png" },
+});
+```
 
 ### Community
 
@@ -125,10 +198,31 @@ const nextPage = await client.user.getFollowers({
 | `client.community.search({ query })` | Search communities |
 | `client.community.createPost({ authToken, text, communityId, proxy })` | Post in community |
 | `client.community.createPostWithMedia({ ... })` | Post with media in community |
+| `client.community.createQuote({ authToken, text, attachmentUrl, communityId, proxy })` | Quote tweet in community |
+| `client.community.createQuoteWithMedia({ ... })` | Quote tweet with media in community |
 | `client.community.replyPost({ ... })` | Reply to community post |
 | `client.community.replyPostWithMedia({ ... })` | Reply with media in community |
 | `client.community.join({ authToken, communityId })` | Join a community |
 | `client.community.leave({ authToken, communityId })` | Leave a community |
+
+```typescript
+await client.community.createQuote({
+  authToken: "TWITTER_AUTH_TOKEN",
+  text: "Relevant for this community",
+  attachmentUrl: "https://x.com/example/status/TWEET_ID",
+  communityId: "COMMUNITY_ID",
+  proxy: "host:port@user:pass",
+});
+
+await client.community.createQuoteWithMedia({
+  authToken: "TWITTER_AUTH_TOKEN",
+  text: "Community quote with media",
+  attachmentUrl: "https://x.com/example/status/TWEET_ID",
+  communityId: "COMMUNITY_ID",
+  media: [{ media_id: "TWITTER_MEDIA_ID" }],
+  proxy: "host:port@user:pass",
+});
+```
 
 ### Space
 
@@ -183,7 +277,7 @@ const client = new TweetAPI({ apiKey: "YOUR_API_KEY" });
 
 // Iterate individual items across all pages
 for await (const user of paginate(
-  (cursor) => client.user.getFollowers({ userId: "123456", cursor }),
+  (cursor) => client.user.getFollowers({ userId: "USER_ID", cursor }),
 )) {
   console.log(user.username);
 }

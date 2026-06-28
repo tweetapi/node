@@ -15,6 +15,7 @@ import { TweetResource } from "./resources/tweet";
 import { PostResource } from "./resources/post";
 import { InteractionResource } from "./resources/interaction";
 import { ListResource } from "./resources/list";
+import { ProfileResource } from "./resources/profile";
 import { CommunityResource } from "./resources/community";
 import { SpaceResource } from "./resources/space";
 import { ExploreResource } from "./resources/explore";
@@ -53,6 +54,8 @@ export class TweetAPI {
   readonly interaction: InteractionResource;
   /** List details, tweets, members, followers */
   readonly list: ListResource;
+  /** Authenticated profile updates, avatar, and banner */
+  readonly profile: ProfileResource;
   /** Community details, tweets, members, posts, join/leave */
   readonly community: CommunityResource;
   /** Twitter Spaces details and stream URLs */
@@ -90,6 +93,7 @@ export class TweetAPI {
     this.post = new PostResource(this);
     this.interaction = new InteractionResource(this);
     this.list = new ListResource(this);
+    this.profile = new ProfileResource(this);
     this.community = new CommunityResource(this);
     this.space = new SpaceResource(this);
     this.explore = new ExploreResource(this);

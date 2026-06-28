@@ -91,6 +91,8 @@ export type ActionType =
   | "create_tweet"
   | "create_community_post"
   | "create_community_post_with_media"
+  | "create_community_quote"
+  | "create_community_quote_with_media"
   | "delete_tweet"
   | "reply"
   | "reply_community_post"

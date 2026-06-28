@@ -108,11 +108,46 @@ export interface TranslateTweetParams {
 
 // ─── Post Params ─────────────────────────────────────────────────────────────
 
+export type ReplyOptionMode =
+  | "everyone"
+  | "accounts_you_follow"
+  | "accounts_you_follow_and_followed"
+  | "mentioned_accounts"
+  | "verified_accounts"
+  | "regions";
+
+export type ReplyRegionCode =
+  | "NAM"
+  | "EAS"
+  | "AFR"
+  | "SEA"
+  | "SAM"
+  | "EUR"
+  | "AUS"
+  | "SAS"
+  | "WES"
+  | "CAS";
+
+export interface ReplyOption {
+  mode: ReplyOptionMode;
+  regions?: ReplyRegionCode[];
+}
+
+export type TweetMediaInput =
+  | { media_id: string }
+  | { url: string; type?: string }
+  | { data: string; type: string };
+
+export type ProfileMediaInput =
+  | { url: string; type?: string }
+  | { data: string; type: string };
+
 export interface CreatePostParams {
   authToken: string;
   text: string;
   proxy: string;
   disableLinkPreview?: boolean;
+  replyOption?: ReplyOption;
 }
 
 export interface CreatePostQuoteParams {
@@ -121,14 +156,16 @@ export interface CreatePostQuoteParams {
   attachmentUrl: string;
   proxy: string;
   disableLinkPreview?: boolean;
+  replyOption?: ReplyOption;
 }
 
 export interface CreatePostWithMediaParams {
   authToken: string;
   text: string;
-  media: unknown[];
+  media: TweetMediaInput[];
   proxy: string;
   disableLinkPreview?: boolean;
+  replyOption?: ReplyOption;
 }
 
 export interface ReplyPostParams {
@@ -143,7 +180,7 @@ export interface ReplyPostWithMediaParams {
   authToken: string;
   text: string;
   tweetId: string;
-  media: unknown[];
+  media: TweetMediaInput[];
   proxy: string;
   disableLinkPreview?: boolean;
 }
@@ -256,6 +293,50 @@ export interface GetListFollowersParams {
   cursor?: string;
 }
 
+export interface CreateListParams {
+  authToken: string;
+  name: string;
+  description?: string;
+  isPrivate?: boolean;
+}
+
+export interface AddListMemberParams {
+  authToken: string;
+  listId: string;
+  userId: string;
+  proxy?: string;
+}
+
+export interface RemoveListMemberParams {
+  authToken: string;
+  listId: string;
+  userId: string;
+  proxy?: string;
+}
+
+// ─── Profile Params ─────────────────────────────────────────────────────────
+
+export interface UpdateProfileParams {
+  authToken: string;
+  name?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  proxy?: string;
+}
+
+export interface UpdateProfileAvatarParams {
+  authToken: string;
+  media: ProfileMediaInput;
+  proxy?: string;
+}
+
+export interface UpdateProfileBannerParams {
+  authToken: string;
+  media: ProfileMediaInput;
+  proxy?: string;
+}
+
 // ─── Community Params ────────────────────────────────────────────────────────
 
 export interface GetCommunityDetailsParams {
@@ -290,7 +371,7 @@ export interface CreateCommunityPostWithMediaParams {
   authToken: string;
   text: string;
   communityId: string;
-  media: unknown[];
+  media: TweetMediaInput[];
   proxy: string;
   disableLinkPreview?: boolean;
 }
@@ -309,7 +390,26 @@ export interface ReplyCommunityPostWithMediaParams {
   text: string;
   tweetId: string;
   communityId: string;
-  media: unknown[];
+  media: TweetMediaInput[];
+  proxy: string;
+  disableLinkPreview?: boolean;
+}
+
+export interface CreateCommunityQuoteParams {
+  authToken: string;
+  text: string;
+  attachmentUrl: string;
+  communityId: string;
+  proxy: string;
+  disableLinkPreview?: boolean;
+}
+
+export interface CreateCommunityQuoteWithMediaParams {
+  authToken: string;
+  text: string;
+  attachmentUrl: string;
+  communityId: string;
+  media: TweetMediaInput[];
   proxy: string;
   disableLinkPreview?: boolean;
 }
