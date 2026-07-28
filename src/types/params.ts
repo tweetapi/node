@@ -450,6 +450,8 @@ export interface LoginParams {
   username: string;
   password: string;
   proxy: string;
+  /** ISO 3166-1 alpha-2 country code for the proxy's public egress IP. */
+  country: string;
   twoFactorSecret?: string;
 }
 
