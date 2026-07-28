@@ -9,6 +9,7 @@ async function main() {
       username: "your_twitter_username",
       password: "your_twitter_password",
       proxy: "hostname:port@username:password",
+      country: "US",
     });
 
     const authToken = loginResult.data.cookies.auth_token;

@@ -158,6 +158,38 @@ describe("POST requests", () => {
     expect(body).not.toHaveProperty("disableLinkPreview");
   });
 
+  it("should send login credentials with the proxy egress country", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        status: "success",
+        data: {
+          cookies: { auth_token: "auth", ct0: "csrf", twid: "u=1", kdt: "kdt", __cf_bm: "cf" },
+          user: { id: "1", username: "testuser", name: "Test User" },
+          timestamp: "2026-07-27T00:00:00.000Z",
+        },
+      }),
+    );
+
+    await client.auth.login({
+      username: "testuser",
+      password: "secret",
+      proxy: "host:port@user:pass",
+      country: "US",
+      twoFactorSecret: "ABCDEFGHIJKLMNOP",
+    });
+
+    const [url, options] = lastFetchCall();
+    expect(url).toContain("/tw-v2/auth/login");
+    expect(options.method).toBe("POST");
+    expect(lastRequestBody()).toEqual({
+      username: "testuser",
+      password: "secret",
+      proxy: "host:port@user:pass",
+      country: "US",
+      twoFactorSecret: "ABCDEFGHIJKLMNOP",
+    });
+  });
+
   it("should send canonical list create request", async () => {
     mockFetch.mockResolvedValueOnce(
       jsonResponse({ data: { id: "list123", name: "Research" } }),

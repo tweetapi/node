@@ -6,7 +6,7 @@ import type { LoginParams } from "../types/params";
 export class AuthResource {
   constructor(private readonly client: TweetAPI) {}
 
-  /** Log in to a Twitter account and get auth tokens */
+  /** Log in to a Twitter account using its proxy egress country and get auth tokens */
   async login(params: LoginParams) {
     return this.client.post_<ApiResponse<LoginResponse>>(
       "/tw-v2/auth/login",
