@@ -101,6 +101,14 @@ export interface UserAnalytics {
 
 // ─── Tweet ───────────────────────────────────────────────────────────────────
 
+export interface Article {
+  id: string;
+  title: string;
+  text: string;
+  previewText: string;
+  coverImageUrl: string | null;
+}
+
 export interface Tweet {
   id: string;
   conversationId: string | null;
@@ -130,6 +138,7 @@ export interface Tweet {
   media: Media[] | null;
   poll: Poll | null;
   card: Card | null;
+  article: Article | null;
 
   hashtags: string[];
   mentions: {

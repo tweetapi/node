@@ -33,6 +33,7 @@ export type {
   UserRelationship,
   UserAnalytics,
   Tweet,
+  Article,
   ReactionContext,
   ReactionTargetAuthor,
   TweetTranslation,
