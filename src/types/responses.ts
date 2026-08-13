@@ -61,6 +61,10 @@ export interface User {
   createdAt: string | null;
 }
 
+export interface ProfilePrivacy {
+  isPrivate: boolean;
+}
+
 export interface UserRelationship {
   sourceId: string;
   targetId: string;

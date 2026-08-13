@@ -337,6 +337,17 @@ export interface UpdateProfileBannerParams {
   proxy?: string;
 }
 
+export interface RemoveProfileBannerParams {
+  authToken: string;
+  proxy?: string;
+}
+
+export interface UpdateProfilePrivacyParams {
+  authToken: string;
+  isPrivate: boolean;
+  proxy?: string;
+}
+
 // ─── Community Params ────────────────────────────────────────────────────────
 
 export interface GetCommunityDetailsParams {

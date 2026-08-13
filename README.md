@@ -75,6 +75,8 @@ const nextPage = await client.user.getFollowers({
 | `client.profile.update({ authToken, name, bio, location, website })` | Update authenticated profile fields |
 | `client.profile.avatar({ authToken, media })` | Update profile avatar from image URL or base64 data |
 | `client.profile.banner({ authToken, media })` | Update profile banner from image URL or base64 data |
+| `client.profile.removeBanner({ authToken })` | Remove the profile banner |
+| `client.profile.setPrivacy({ authToken, isPrivate })` | Make the account public or private |
 
 ### Tweet
 
@@ -185,6 +187,15 @@ await client.profile.avatar({
 await client.profile.banner({
   authToken: "TWITTER_AUTH_TOKEN",
   media: { data: "BASE64_IMAGE_DATA", type: "image/png" },
+});
+
+await client.profile.removeBanner({
+  authToken: "TWITTER_AUTH_TOKEN",
+});
+
+await client.profile.setPrivacy({
+  authToken: "TWITTER_AUTH_TOKEN",
+  isPrivate: true,
 });
 ```
 

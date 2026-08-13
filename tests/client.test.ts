@@ -318,6 +318,40 @@ describe("POST requests", () => {
     });
   });
 
+  it("should send profile banner removal request", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({ data: { id: "user123", username: "test", name: "Test", banner: null } }),
+    );
+
+    await client.profile.removeBanner({
+      authToken: "auth123",
+      proxy: "host:port@user:pass",
+    });
+
+    const [url] = lastFetchCall();
+    expect(url).toContain("/tw-v2/profile/remove-banner");
+    expect(lastRequestBody()).toEqual({
+      authToken: "auth123",
+      proxy: "host:port@user:pass",
+    });
+  });
+
+  it("should send profile privacy request and preserve false", async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({ data: { isPrivate: false } }));
+
+    await client.profile.setPrivacy({
+      authToken: "auth123",
+      isPrivate: false,
+    });
+
+    const [url] = lastFetchCall();
+    expect(url).toContain("/tw-v2/profile/privacy");
+    expect(lastRequestBody()).toEqual({
+      authToken: "auth123",
+      isPrivate: false,
+    });
+  });
+
   it("should send community quote request", async () => {
     mockFetch.mockResolvedValueOnce(
       jsonResponse({

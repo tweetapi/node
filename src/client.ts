@@ -54,7 +54,7 @@ export class TweetAPI {
   readonly interaction: InteractionResource;
   /** List details, tweets, members, followers */
   readonly list: ListResource;
-  /** Authenticated profile updates, avatar, and banner */
+  /** Authenticated profile management */
   readonly profile: ProfileResource;
   /** Community details, tweets, members, posts, join/leave */
   readonly community: CommunityResource;

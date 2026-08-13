@@ -1,11 +1,13 @@
 import type { TweetAPI } from "../client";
 import type { ApiResponse } from "../types/common";
 import type {
+  RemoveProfileBannerParams,
   UpdateProfileAvatarParams,
   UpdateProfileBannerParams,
   UpdateProfileParams,
+  UpdateProfilePrivacyParams,
 } from "../types/params";
-import type { User } from "../types/responses";
+import type { ProfilePrivacy, User } from "../types/responses";
 
 export class ProfileResource {
   constructor(private readonly client: TweetAPI) {}
@@ -23,5 +25,15 @@ export class ProfileResource {
   /** Update the authenticated profile banner */
   async banner(params: UpdateProfileBannerParams) {
     return this.client.post_<ApiResponse<User>>("/tw-v2/profile/banner", params);
+  }
+
+  /** Remove the authenticated profile banner */
+  async removeBanner(params: RemoveProfileBannerParams) {
+    return this.client.post_<ApiResponse<User>>("/tw-v2/profile/remove-banner", params);
+  }
+
+  /** Change the authenticated account between public and private */
+  async setPrivacy(params: UpdateProfilePrivacyParams) {
+    return this.client.post_<ApiResponse<ProfilePrivacy>>("/tw-v2/profile/privacy", params);
   }
 }
