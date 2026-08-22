@@ -1,8 +1,6 @@
 # TweetAPI Node.js SDK
 
-Official Node.js/TypeScript SDK for [TweetAPI](https://tweetapi.com?utm_source=github&utm_medium=readme&utm_campaign=node-sdk) — the Twitter/X Data API for developers and researchers.
-
-Access tweets, user profiles, followers, analytics, and full interaction capabilities. 70+ typed endpoints with built-in error handling.
+`tweetapi-node` is the Node.js and TypeScript SDK for [TweetAPI](https://tweetapi.com?utm_source=github&utm_medium=readme&utm_campaign=node-sdk). It includes typed methods for profiles, tweets, lists, communities, Spaces, direct messages, search, and authenticated account actions.
 
 ## Install
 
@@ -10,7 +8,7 @@ Access tweets, user profiles, followers, analytics, and full interaction capabil
 npm install tweetapi-node
 ```
 
-## Quick Start
+## Quick start
 
 ```typescript
 import TweetAPI from "tweetapi-node";
@@ -19,7 +17,7 @@ const client = new TweetAPI({ apiKey: "YOUR_API_KEY" });
 
 // Get a user profile
 const user = await client.user.getByUsername({ username: "elonmusk" });
-console.log(user.data.followerCount); // 180000000
+console.log(user.data.followerCount);
 
 // Search tweets
 const results = await client.explore.search({ query: "bitcoin", type: "Latest" });
@@ -32,20 +30,19 @@ const nextPage = await client.user.getFollowers({
 });
 ```
 
-> **Get your free API key** — [100 requests, no credit card required](https://tweetapi.com?utm_source=github&utm_medium=readme&utm_campaign=node-sdk)
+[Create an API key](https://tweetapi.com?utm_source=github&utm_medium=readme&utm_campaign=node-sdk) with 100 included requests. No credit card is required.
 
-## Features
+## SDK behavior
 
-- **70+ endpoints** covering users, tweets, posts, interactions, DMs, communities, spaces, and search
-- **Full TypeScript types** for all requests and responses — autocomplete everything
-- **Automatic retry with backoff** on rate limits (429) and server errors (5xx)
-- **Auto-pagination helpers** — iterate all pages with `for await...of`
-- **Solid error handling** with typed exceptions (`RateLimitError`, `NotFoundError`, etc.)
-- **Rate limit awareness** — `retryAfter` respected automatically, state exposed via `client.rateLimitInfo`
-- **Zero dependencies** — uses native `fetch` (Node.js 18+)
-- **ESM and CommonJS** dual build
+- TypeScript types cover request parameters, response models, pagination, and errors.
+- `paginate()` and `paginatePages()` are async generators. The optional `maxPages` setting limits how many pages they request.
+- Requests retry up to three times by default after a 429 response, a 5xx response, or a network error. Retry settings are configurable.
+- `RateLimitError.retryAfter` and `client.rateLimitInfo` expose rate-limit delay information from the last 429 response.
+- Error classes distinguish validation, authentication, permission, not-found, rate-limit, server, and connection failures.
+- The client has no runtime dependencies and uses native `fetch` on Node.js 18 or newer.
+- The package provides ESM, CommonJS, and TypeScript declaration builds.
 
-## API Reference
+## API reference
 
 ### User
 
@@ -169,7 +166,7 @@ await client.list.addMember({
 });
 ```
 
-### Profile Examples
+### Profile examples
 
 ```typescript
 await client.profile.update({
@@ -256,7 +253,7 @@ await client.community.createQuoteWithMedia({
 
 `country` is the ISO 3166-1 alpha-2 code for the proxy's public egress IP (for example, `"US"`). It must match the IP used for the complete login attempt. Pass `twoFactorSecret` when the account uses TOTP-based 2FA.
 
-### X Chat (Encrypted DMs)
+### X Chat (encrypted DMs)
 
 | Method | Description |
 |--------|-------------|
@@ -279,7 +276,7 @@ await client.community.createQuoteWithMedia({
 | `client.dm.getDmUserUpdates({ authToken, cursor })` | Get DM user updates |
 | `client.dm.acceptConversation({ authToken, conversationId })` | Accept a conversation |
 
-## Auto-Pagination
+## Pagination
 
 Use the `paginate()` and `paginatePages()` helpers to iterate through all pages automatically:
 
@@ -305,18 +302,18 @@ for await (const page of paginatePages(
 }
 ```
 
-Works with any paginated endpoint — followers, tweets, search results, list members, community posts, etc.
+Both helpers accept a function that returns a `PaginatedResponse`. Use them with resource methods whose responses contain `data` and `pagination.nextCursor`.
 
-## Automatic Retry with Backoff
+## Retries
 
-The SDK automatically retries on transient errors with exponential backoff:
+By default, the client retries these failures:
 
-- **429 (Rate Limit)** — waits the `retryAfter` duration from the API, then retries
-- **5xx (Server Error)** — retries with exponential backoff + jitter
-- **Network errors** — retries on timeouts and connection failures
-- **4xx (Client Error)** — never retried (400, 401, 403, 404 fail immediately)
+- A 429 response waits for the API's `retryAfter` duration, capped by `maxRetryDelay`.
+- A 5xx response uses exponential backoff with jitter.
+- A timeout or connection failure uses the same exponential backoff.
+- Other 4xx responses fail without a retry.
 
-Default: 3 retries, 2x backoff, 1s initial delay, 30s max delay.
+The defaults are three retries, a 1-second initial delay, a backoff multiplier of 2, and a 30-second maximum delay.
 
 ```typescript
 // Customize retry behavior
@@ -337,18 +334,17 @@ const client = new TweetAPI({
 });
 ```
 
-### Rate Limit Awareness
+### Rate-limit state
 
 After a 429 response, the SDK exposes the last known rate limit state:
 
 ```typescript
 console.log(client.rateLimitInfo);
-// { retryAfter: 30, timestamp: 1712345678000 } — or null if no 429 encountered
 ```
 
-## Error Handling
+## Error handling
 
-The SDK throws typed errors you can catch and handle. With automatic retries enabled (default), you'll only see these after all retry attempts are exhausted:
+The client throws subclasses of `TweetAPIError`. Retryable errors reach your code after the configured retries are exhausted.
 
 ```typescript
 import TweetAPI, {
@@ -383,10 +379,11 @@ try {
 ```
 
 Every error includes:
-- `code` — API error code (e.g., `"ACCOUNT_SUSPENDED"`, `"RATE_LIMIT"`)
-- `statusCode` — HTTP status code
-- `message` — Human-readable error message
-- `details` — Additional context (field, reason, retryAfter, etc.)
+
+- `code`: API error code, such as `"ACCOUNT_SUSPENDED"` or `"RATE_LIMIT"`
+- `statusCode`: HTTP status code
+- `message`: human-readable error message
+- `details`: additional context such as a field, reason, or `retryAfter` value
 
 ## Configuration
 
@@ -411,8 +408,8 @@ const client = new TweetAPI({
 
 ## Links
 
-- [Full Documentation](https://tweetapi.com/docs?utm_source=github&utm_medium=readme&utm_campaign=node-sdk)
-- [Get API Key (Free)](https://tweetapi.com?utm_source=github&utm_medium=readme&utm_campaign=node-sdk)
+- [Documentation](https://tweetapi.com/docs?utm_source=github&utm_medium=readme&utm_campaign=node-sdk)
+- [Get an API key](https://tweetapi.com?utm_source=github&utm_medium=readme&utm_campaign=node-sdk)
 - [Dashboard](https://tweetapi.com/dashboard?utm_source=github&utm_medium=readme&utm_campaign=node-sdk)
 - [Python SDK](https://github.com/tweetapi/python)
 
@@ -420,6 +417,4 @@ const client = new TweetAPI({
 
 MIT
 
----
-
-*TweetAPI is a third-party service and is not affiliated with X Corp.*
+TweetAPI is a third-party service and is not affiliated with X Corp.
