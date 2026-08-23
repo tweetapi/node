@@ -34,6 +34,10 @@ export interface TweetAPIOptions {
   retry?: RetryOptions | false;
 }
 
+interface RequestOptions {
+  retry?: boolean;
+}
+
 export class TweetAPI {
   private readonly apiKey: string;
   private readonly baseUrl: string;
@@ -131,8 +135,12 @@ export class TweetAPI {
    * Send a POST request to the API.
    * @internal
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async post_<T>(path: string, body?: Record<string, any>): Promise<T> {
+  async post_<T>(
+    path: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    body?: Record<string, any>,
+    options?: RequestOptions,
+  ): Promise<T> {
     const cleanBody: Record<string, unknown> = {};
     if (body) {
       for (const [key, value] of Object.entries(body)) {
@@ -142,11 +150,15 @@ export class TweetAPI {
       }
     }
 
-    return this.request<T>(`${this.baseUrl}${path}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cleanBody),
-    });
+    return this.request<T>(
+      `${this.baseUrl}${path}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cleanBody),
+      },
+      options,
+    );
   }
 
   /** Last known rate limit info from a 429 response, or `null`. */
@@ -154,10 +166,15 @@ export class TweetAPI {
     return this._rateLimitInfo;
   }
 
-  private async request<T>(url: string, init: RequestInit): Promise<T> {
+  private async request<T>(
+    url: string,
+    init: RequestInit,
+    options?: RequestOptions,
+  ): Promise<T> {
     let lastError: TweetAPIError | null = null;
+    const maxRetries = options?.retry === false ? 0 : this.maxRetries;
 
-    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), this.timeout);
 
@@ -189,7 +206,7 @@ export class TweetAPI {
           };
         }
 
-        if (attempt < this.maxRetries && this.isRetryable(normalized)) {
+        if (attempt < maxRetries && this.isRetryable(normalized)) {
           await new Promise((r) =>
             setTimeout(r, this.calculateRetryDelay(normalized, attempt)),
           );

@@ -65,6 +65,10 @@ export interface ProfilePrivacy {
   isPrivate: boolean;
 }
 
+export interface ProfileUsername {
+  username: string;
+}
+
 export interface UserRelationship {
   sourceId: string;
   targetId: string;

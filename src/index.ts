@@ -33,6 +33,7 @@ export type {
   UserRelationship,
   UserAnalytics,
   ProfilePrivacy,
+  ProfileUsername,
   Tweet,
   Article,
   ReactionContext,

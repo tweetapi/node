@@ -37,6 +37,7 @@ const nextPage = await client.user.getFollowers({
 - TypeScript types cover request parameters, response models, pagination, and errors.
 - `paginate()` and `paginatePages()` are async generators. The optional `maxPages` setting limits how many pages they request.
 - Requests retry up to three times by default after a 429 response, a 5xx response, or a network error. Retry settings are configurable.
+- `client.profile.updateUsername()` is not automatically retried because username changes are not safe to replay.
 - `RateLimitError.retryAfter` and `client.rateLimitInfo` expose rate-limit delay information from the last 429 response.
 - Error classes distinguish validation, authentication, permission, not-found, rate-limit, server, and connection failures.
 - The client has no runtime dependencies and uses native `fetch` on Node.js 18 or newer.
@@ -70,6 +71,7 @@ const nextPage = await client.user.getFollowers({
 | Method | Description |
 |--------|-------------|
 | `client.profile.update({ authToken, name, bio, location, website })` | Update authenticated profile fields |
+| `client.profile.updateUsername({ authToken, password, username })` | Change the authenticated account username |
 | `client.profile.avatar({ authToken, media })` | Update profile avatar from image URL or base64 data |
 | `client.profile.banner({ authToken, media })` | Update profile banner from image URL or base64 data |
 | `client.profile.removeBanner({ authToken })` | Remove the profile banner |
@@ -174,6 +176,12 @@ await client.profile.update({
   name: "TweetAPI Research",
   bio: "Twitter/X data workflows",
   website: "https://tweetapi.com",
+});
+
+await client.profile.updateUsername({
+  authToken: "TWITTER_AUTH_TOKEN",
+  password: "TWITTER_PASSWORD",
+  username: "NEW_USERNAME",
 });
 
 await client.profile.avatar({

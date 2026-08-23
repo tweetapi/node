@@ -6,8 +6,9 @@ import type {
   UpdateProfileBannerParams,
   UpdateProfileParams,
   UpdateProfilePrivacyParams,
+  UpdateProfileUsernameParams,
 } from "../types/params";
-import type { ProfilePrivacy, User } from "../types/responses";
+import type { ProfilePrivacy, ProfileUsername, User } from "../types/responses";
 
 export class ProfileResource {
   constructor(private readonly client: TweetAPI) {}
@@ -15,6 +16,15 @@ export class ProfileResource {
   /** Update authenticated profile fields */
   async update(params: UpdateProfileParams) {
     return this.client.post_<ApiResponse<User>>("/tw-v2/profile/update", params);
+  }
+
+  /** Change the authenticated account username */
+  async updateUsername(params: UpdateProfileUsernameParams) {
+    return this.client.post_<ApiResponse<ProfileUsername>>(
+      "/tw-v2/profile/username",
+      params,
+      { retry: false },
+    );
   }
 
   /** Update the authenticated profile avatar */
