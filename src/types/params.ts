@@ -325,6 +325,13 @@ export interface UpdateProfileParams {
   proxy?: string;
 }
 
+export interface UpdateProfileUsernameParams {
+  authToken: string;
+  password: string;
+  username: string;
+  proxy?: string;
+}
+
 export interface UpdateProfileAvatarParams {
   authToken: string;
   media: ProfileMediaInput;

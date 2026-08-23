@@ -157,6 +157,36 @@ describe("Retry with backoff", () => {
     expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
+  it("should not retry username updates after a retryable failure", async () => {
+    const client = new TweetAPI({
+      apiKey: "key",
+      retry: { maxRetries: 3, initialRetryDelay: 1 },
+    });
+    const params = {
+      authToken: "AUTH_TOKEN",
+      password: "PASSWORD",
+      username: "NEW_USERNAME",
+    };
+
+    mockFetch
+      .mockResolvedValueOnce(
+        errorResponse(500, "SERVER_ERROR", "Internal error"),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ data: { username: "NEW_USERNAME" } }),
+      );
+
+    await expect(client.profile.updateUsername(params)).rejects.toThrow(
+      ServerError,
+    );
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+
+    await expect(client.profile.updateUsername(params)).resolves.toEqual({
+      data: { username: "NEW_USERNAME" },
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
   it("should disable retries with retry: false", async () => {
     const client = new TweetAPI({
       apiKey: "key",

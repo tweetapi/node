@@ -280,6 +280,47 @@ describe("POST requests", () => {
     });
   });
 
+  it("should send the exact profile username request contract", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({ data: { username: "NEW_USERNAME" } }),
+    );
+
+    const result = await client.profile.updateUsername({
+      authToken: "AUTH_TOKEN",
+      password: "PASSWORD",
+      username: "NEW_USERNAME",
+      proxy: "PROXY",
+    });
+
+    const [url, options] = lastFetchCall();
+    expect(url).toBe("https://api.tweetapi.com/tw-v2/profile/username");
+    expect(options.method).toBe("POST");
+    expect(lastRequestBody()).toEqual({
+      authToken: "AUTH_TOKEN",
+      password: "PASSWORD",
+      username: "NEW_USERNAME",
+      proxy: "PROXY",
+    });
+    expect(result).toEqual({ data: { username: "NEW_USERNAME" } });
+  });
+
+  it("should preserve falsey username fields and strip undefined proxy", async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({ data: { username: "" } }));
+
+    await client.profile.updateUsername({
+      authToken: "",
+      password: "",
+      username: "",
+      proxy: undefined,
+    });
+
+    expect(lastRequestBody()).toEqual({
+      authToken: "",
+      password: "",
+      username: "",
+    });
+  });
+
   it("should send profile avatar request", async () => {
     mockFetch.mockResolvedValueOnce(
       jsonResponse({ data: { id: "user123", username: "test", name: "Test" } }),
