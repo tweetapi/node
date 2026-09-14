@@ -241,6 +241,29 @@ export interface UnfollowParams {
   proxy?: string;
 }
 
+export interface GetFollowRequestsParams {
+  authToken: string;
+  proxy?: string;
+  /** Pagination cursor. The API defaults to "-1". */
+  cursor?: string;
+  /** Integer from 1 to 100. The API defaults to 100. */
+  count?: number;
+}
+
+export interface AcceptFollowRequestParams {
+  authToken: string;
+  /** Requester's digit-only user ID. Keep it as a string to preserve precision. */
+  userId: string;
+  proxy?: string;
+}
+
+export interface DenyFollowRequestParams {
+  authToken: string;
+  /** Requester's digit-only user ID. Keep it as a string to preserve precision. */
+  userId: string;
+  proxy?: string;
+}
+
 export interface AddMemberToListParams {
   authToken: string;
   listId: string;

@@ -73,6 +73,11 @@ export type {
 } from "./types/common";
 
 // Param types
+export type {
+  GetFollowRequestsParams,
+  AcceptFollowRequestParams,
+  DenyFollowRequestParams,
+} from "./types/params";
 export type * from "./types/params";
 
 // Pagination helpers

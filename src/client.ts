@@ -252,16 +252,19 @@ export class TweetAPI {
   }
 
   private async handleErrorResponse(response: Response): Promise<never> {
-    let body: ErrorResponseBody | null = null;
+    // /tw-v2 uses the legacy top-level message; /v3 uses a nested error.
+    type ErrorBody = Partial<ErrorResponseBody> & { message?: unknown };
+    let body: ErrorBody | null = null;
 
     try {
-      body = (await response.json()) as ErrorResponseBody;
+      body = (await response.json()) as ErrorBody;
     } catch {
       // Response body is not valid JSON
     }
 
     const code = body?.error?.code ?? "UNKNOWN_ERROR";
-    const message = body?.error?.message ?? `HTTP ${response.status}`;
+    const message = body?.error?.message ??
+      (typeof body?.message === "string" ? body.message : `HTTP ${response.status}`);
     const details = body?.error?.details ?? null;
 
     switch (response.status) {
