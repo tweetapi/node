@@ -38,6 +38,7 @@ const nextPage = await client.user.getFollowers({
 - `paginate()` and `paginatePages()` are async generators. The optional `maxPages` setting limits how many pages they request.
 - Requests retry up to three times by default after a 429 response, a 5xx response, or a network error. Retry settings are configurable.
 - `client.profile.updateUsername()` is not automatically retried because username changes are not safe to replay.
+- `client.interaction.acceptFollowRequest()` and `denyFollowRequest()` are never automatically retried. Follow-request reads keep the configured retry behavior.
 - `RateLimitError.retryAfter` and `client.rateLimitInfo` expose rate-limit delay information from the last 429 response.
 - Error classes distinguish validation, authentication, permission, not-found, rate-limit, server, and connection failures.
 - The client has no runtime dependencies and uses native `fetch` on Node.js 18 or newer.
@@ -136,10 +137,55 @@ await client.post.createPostWithMedia({
 | `client.interaction.deleteBookmark({ authToken, tweetId })` | Remove bookmark |
 | `client.interaction.follow({ authToken, userId })` | Follow a user |
 | `client.interaction.unfollow({ authToken, userId })` | Unfollow a user |
+| `client.interaction.getFollowRequests({ authToken, cursor?, count?, proxy? })` | List incoming follow-request IDs |
+| `client.interaction.acceptFollowRequest({ authToken, userId, proxy? })` | Accept one incoming follow request |
+| `client.interaction.denyFollowRequest({ authToken, userId, proxy? })` | Deny one incoming follow request |
 | `client.interaction.addMemberToList({ authToken, listId, userId })` | Legacy alias for adding user to list |
 | `client.interaction.removeMemberFromList({ authToken, listId, userId })` | Legacy alias for removing user from list |
 | `client.interaction.getNotifications({ authToken })` | Get notifications |
 | `client.interaction.getUserAnalytics({ authToken })` | Get account analytics |
+
+The supplied `authToken` determines whose incoming requests you manage. All three methods accept an optional `proxy` in the existing `host:port@user:pass` format. Listing defaults to cursor `"-1"` and count `100`; `count` must be an integer from 1 to 100. The response is a `PaginatedResponse<string>` with precise digit-string IDs, no profiles or total count, and `null` terminal cursors. An empty list is a successful response.
+
+List requests, then select one requester to review:
+
+```typescript
+const authToken = "TWITTER_AUTH_TOKEN";
+const page = await client.interaction.getFollowRequests({ authToken, count: 20 });
+console.log(page.data); // Requester IDs; keep these as strings.
+
+// Fetch another page only when one exists.
+if (page.pagination.nextCursor !== null) {
+  const nextPage = await client.interaction.getFollowRequests({
+    authToken,
+    count: 20,
+    cursor: page.pagination.nextCursor,
+  });
+  console.log(nextPage.data);
+}
+```
+
+After reviewing the list, choose either acceptance or denial for one digit-only `userId`. Replace `"REQUESTER_USER_ID"` with the selected ID; do not convert it to a number.
+
+```typescript
+const result = await client.interaction.acceptFollowRequest({
+  authToken: "TWITTER_AUTH_TOKEN",
+  userId: "REQUESTER_USER_ID",
+});
+console.log(result.data.action); // "accept_follow_request"
+console.log(result.data.metadata?.user_id);
+```
+
+To deny the selected request instead:
+
+```typescript
+await client.interaction.denyFollowRequest({
+  authToken: "TWITTER_AUTH_TOKEN",
+  userId: "REQUESTER_USER_ID",
+});
+```
+
+Both mutations return `ActionResponse`, with `data.id` and `data.metadata.user_id` equal to the supplied ID, a timestamp, `success: true`, and action `"accept_follow_request"` or `"deny_follow_request"`. Neither operation has an idempotency guarantee. A timeout or connection failure leaves the outcome uncertain: inspect the pending requests and account state to reconcile the result before considering a manual retry. Do not automatically replay these mutations after an error.
 
 ### List
 
@@ -322,6 +368,8 @@ By default, the client retries these failures:
 - Other 4xx responses fail without a retry.
 
 The defaults are three retries, a 1-second initial delay, a backoff multiplier of 2, and a 30-second maximum delay.
+
+`profile.updateUsername()`, `interaction.acceptFollowRequest()`, and `interaction.denyFollowRequest()` always make one attempt, even when global retries are enabled. `interaction.getFollowRequests()` retains normal retries and works with both pagination helpers.
 
 ```typescript
 // Customize retry behavior

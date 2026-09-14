@@ -82,6 +82,8 @@ export type ActionType =
   | "unretweet"
   | "follow"
   | "unfollow"
+  | "accept_follow_request"
+  | "deny_follow_request"
   | "enable_notifications"
   | "disable_notifications"
   | "mute"

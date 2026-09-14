@@ -1,6 +1,6 @@
 {
   "name": "tweetapi-node",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Node.js and TypeScript SDK for TweetAPI's Twitter/X data and account API",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

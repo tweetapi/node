@@ -10,6 +10,9 @@ import type {
   DeleteBookmarkParams,
   FollowParams,
   UnfollowParams,
+  GetFollowRequestsParams,
+  AcceptFollowRequestParams,
+  DenyFollowRequestParams,
   AddMemberToListParams,
   RemoveMemberFromListParams,
   GetNotificationsParams,
@@ -80,6 +83,32 @@ export class InteractionResource {
     return this.client.post_<ActionResponse>(
       "/tw-v2/interaction/unfollow",
       params,
+    );
+  }
+
+  /** List incoming follow-request IDs for the authenticated account. */
+  async getFollowRequests(params: GetFollowRequestsParams): Promise<PaginatedResponse<string>> {
+    return this.client.get<PaginatedResponse<string>>(
+      "/tw-v2/interaction/follow-requests",
+      params,
+    );
+  }
+
+  /** Accept one incoming request. Never automatically retried; reconcile timeouts before retrying. */
+  async acceptFollowRequest(params: AcceptFollowRequestParams): Promise<ActionResponse> {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/accept-follow-request",
+      params,
+      { retry: false },
+    );
+  }
+
+  /** Deny one incoming request. Never automatically retried; reconcile timeouts before retrying. */
+  async denyFollowRequest(params: DenyFollowRequestParams): Promise<ActionResponse> {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/deny-follow-request",
+      params,
+      { retry: false },
     );
   }
 
