@@ -1,5 +1,6 @@
 import type { ErrorResponseBody, RetryOptions, RateLimitInfo } from "./types/common";
 import {
+  ErrorCode,
   TweetAPIError,
   AuthenticationError,
   ForbiddenError,
@@ -36,6 +37,22 @@ export interface TweetAPIOptions {
 
 interface RequestOptions {
   retry?: boolean;
+  /** Only reads data, so repeating it after any failure is harmless */
+  read?: boolean;
+}
+
+// Repeating the request cannot succeed: the caller's proxy is down, or the plan is
+// used up or expired.
+const NON_RETRYABLE_CODES = new Set<string>([
+  ErrorCode.PROXY_ERROR,
+  ErrorCode.PROXY_TIMEOUT,
+  ErrorCode.QUOTA_EXHAUSTED,
+  ErrorCode.SUBSCRIPTION_INACTIVE,
+]);
+
+/** `Retry-After` in seconds; the API only sends the delta-seconds form. */
+function parseRetryAfter(value: string | null): number | undefined {
+  return value !== null && /^\d+$/.test(value.trim()) ? Number(value) : undefined;
 }
 
 export class TweetAPI {
@@ -128,11 +145,12 @@ export class TweetAPI {
       }
     }
 
-    return this.request<T>(url.toString(), { method: "GET" });
+    return this.request<T>(url.toString(), { method: "GET" }, { read: true });
   }
 
   /**
-   * Send a POST request to the API.
+   * Send a POST request to the API. It counts as a write unless `options.read` is
+   * set, so it is only retried when the API sends `Retry-After`.
    * @internal
    */
   async post_<T>(
@@ -206,7 +224,7 @@ export class TweetAPI {
           };
         }
 
-        if (attempt < maxRetries && this.isRetryable(normalized)) {
+        if (attempt < maxRetries && this.isRetryable(normalized, options?.read === true)) {
           await new Promise((r) =>
             setTimeout(r, this.calculateRetryDelay(normalized, attempt)),
           );
@@ -234,16 +252,27 @@ export class TweetAPI {
     );
   }
 
-  private isRetryable(error: TweetAPIError): boolean {
+  private isRetryable(error: TweetAPIError, read: boolean): boolean {
+    if (NON_RETRYABLE_CODES.has(error.code)) return false;
+    // The API sends Retry-After only before the request reaches X, so even a
+    // write is safe to repeat.
+    if (
+      (error.statusCode === 429 || error.statusCode === 503) &&
+      error.details?.retryAfter !== undefined
+    ) {
+      return true;
+    }
+    // A failed write may still have gone through; repeating it could post twice.
+    if (!read) return false;
     if (error instanceof ConnectionError) return true;
-    if (error.statusCode === 429) return true;
-    if (error.statusCode >= 500) return true;
-    return false;
+    return error.statusCode === 429 || error.statusCode >= 500;
   }
 
   private calculateRetryDelay(error: TweetAPIError, attempt: number): number {
-    if (error instanceof RateLimitError && error.retryAfter > 0) {
-      return Math.min(error.retryAfter * 1000, this.maxRetryDelay);
+    const retryAfter =
+      error instanceof RateLimitError ? error.retryAfter : error.details?.retryAfter;
+    if (retryAfter !== undefined && retryAfter > 0) {
+      return Math.min(retryAfter * 1000, this.maxRetryDelay);
     }
     const baseDelay =
       this.initialRetryDelay * Math.pow(this.backoffMultiplier, attempt);
@@ -252,8 +281,8 @@ export class TweetAPI {
   }
 
   private async handleErrorResponse(response: Response): Promise<never> {
-    // /tw-v2 uses the legacy top-level message; /v3 uses a nested error.
-    type ErrorBody = Partial<ErrorResponseBody> & { message?: unknown };
+    // /tw-v2 sends {statusCode, message, code?}; /v3 nests {error: {code, message, details}}.
+    type ErrorBody = Partial<ErrorResponseBody> & { message?: unknown; code?: unknown };
     let body: ErrorBody | null = null;
 
     try {
@@ -262,10 +291,17 @@ export class TweetAPI {
       // Response body is not valid JSON
     }
 
-    const code = body?.error?.code ?? "UNKNOWN_ERROR";
+    const code =
+      body?.error?.code ??
+      (typeof body?.code === "string" ? body.code : ErrorCode.UNKNOWN_ERROR);
     const message = body?.error?.message ??
       (typeof body?.message === "string" ? body.message : `HTTP ${response.status}`);
-    const details = body?.error?.details ?? null;
+    const bodyDetails = body?.error?.details ?? null;
+    const retryAfter = parseRetryAfter(response.headers.get("Retry-After"));
+    const details =
+      retryAfter === undefined || bodyDetails?.retryAfter !== undefined
+        ? bodyDetails
+        : { ...bodyDetails, retryAfter };
 
     switch (response.status) {
       case 400:

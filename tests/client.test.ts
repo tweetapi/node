@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   TweetAPI,
+  ErrorCode,
   TweetAPIError,
   AuthenticationError,
+  ForbiddenError,
   ValidationError,
   NotFoundError,
   RateLimitError,
@@ -599,6 +601,35 @@ describe("Error handling", () => {
       expect(e).toBeInstanceOf(ServerError);
       expect((e as ServerError).code).toBe("UNKNOWN_ERROR");
     }
+  });
+
+  it("should read the code from the /tw-v2 error envelope", async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse(
+        { statusCode: 403, message: "This account has been locked", code: "ACCOUNT_LOCKED" },
+        403,
+      ),
+    );
+
+    const error = await client.user.getByUsername({ username: "test" }).catch((e) => e);
+    expect(error).toBeInstanceOf(ForbiddenError);
+    expect(error.code).toBe(ErrorCode.ACCOUNT_LOCKED);
+    expect(error.message).toBe("This account has been locked");
+  });
+
+  it("should expose the Retry-After header as retryAfter", async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ statusCode: 429, message: "Rate limit quota exceeded", code: "RATE_LIMITED" }),
+        { status: 429, headers: { "Content-Type": "application/json", "Retry-After": "17" } },
+      ),
+    );
+
+    const error = await client.user.getByUsername({ username: "test" }).catch((e) => e);
+    expect(error).toBeInstanceOf(RateLimitError);
+    expect(error.code).toBe(ErrorCode.RATE_LIMITED);
+    expect(error.retryAfter).toBe(17);
+    expect(error.details).toEqual({ retryAfter: 17 });
   });
 
   it("should preserve error code from API response", async () => {
