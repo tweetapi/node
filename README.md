@@ -36,10 +36,11 @@ const nextPage = await client.user.getFollowers({
 
 - TypeScript types cover request parameters, response models, pagination, and errors.
 - `paginate()` and `paginatePages()` are async generators. The optional `maxPages` setting limits how many pages they request.
-- Requests retry up to three times by default after a 429 response, a 5xx response, or a network error. Retry settings are configurable.
+- Reads retry up to three times by default after a 429 response, a 5xx response, or a network error. Writes retry only when the API confirms the request never reached X, so an action is never sent twice. Retry settings are configurable.
+- Errors that a retry cannot fix fail at once: a failing `proxy` or a used-up or expired plan.
 - `client.profile.updateUsername()` is not automatically retried because username changes are not safe to replay.
 - `client.interaction.acceptFollowRequest()` and `denyFollowRequest()` are never automatically retried. Follow-request reads keep the configured retry behavior.
-- `RateLimitError.retryAfter` and `client.rateLimitInfo` expose rate-limit delay information from the last 429 response.
+- `RateLimitError.retryAfter` and `client.rateLimitInfo` expose the API's `Retry-After` from the last 429 response.
 - Error classes distinguish validation, authentication, permission, not-found, rate-limit, server, and connection failures.
 - The client has no runtime dependencies and uses native `fetch` on Node.js 18 or newer.
 - The package provides ESM, CommonJS, and TypeScript declaration builds.
@@ -360,12 +361,23 @@ Both helpers accept a function that returns a `PaginatedResponse`. Use them with
 
 ## Retries
 
-By default, the client retries these failures:
+By default, the client retries reads after these failures. Reads are every GET request, plus `tweet.translate()` and the X Chat `getConversations()`, `getHistory()`, and `canDm()` calls.
 
-- A 429 response waits for the API's `retryAfter` duration, capped by `maxRetryDelay`.
-- A 5xx response uses exponential backoff with jitter.
+- A 429 response waits for the API's `Retry-After`, or 60 seconds if it sends none, capped by `maxRetryDelay`.
+- A 5xx response waits for `Retry-After` when the API sends one. Otherwise it uses exponential backoff with jitter.
 - A timeout or connection failure uses the same exponential backoff.
 - Other 4xx responses fail without a retry.
+
+Writes, such as posts, replies, likes, follows, messages, and logins, retry only after a 429 or 503 response that includes `Retry-After`. The API sends that header only before a request reaches X, so the retry cannot repeat an action. Any other failure of a write, including a timeout, may have happened after X accepted the action. The error reaches your code instead, so you can check the result before trying again.
+
+These errors are never retried, because repeating the request cannot succeed:
+
+| `code` | Status | Cause |
+| --- | --- | --- |
+| `PROXY_ERROR` | 502 | Your `proxy` refused the connection or could not be reached |
+| `PROXY_TIMEOUT` | 504 | Your `proxy` timed out |
+| `QUOTA_EXHAUSTED` | 429 | Your plan allowance or prepaid balance is used up |
+| `SUBSCRIPTION_INACTIVE` | 429 | Your plan expired or is inactive |
 
 The defaults are three retries, a 1-second initial delay, a backoff multiplier of 2, and a 30-second maximum delay.
 
@@ -436,10 +448,41 @@ try {
 
 Every error includes:
 
-- `code`: API error code, such as `"ACCOUNT_SUSPENDED"` or `"RATE_LIMIT"`
+- `code`: API error code, such as `"ACCOUNT_LOCKED"` or `"RATE_LIMITED"`
 - `statusCode`: HTTP status code
 - `message`: human-readable error message
 - `details`: additional context such as a field, reason, or `retryAfter` value
+
+### Error codes
+
+`ErrorCode` exports the codes as constants. Errors without a specific code use `"UNKNOWN_ERROR"`, and network failures use `"CONNECTION_ERROR"`.
+
+```typescript
+import { ErrorCode, TweetAPIError } from "tweetapi-node";
+
+try {
+  await client.post.createPost({ authToken, text: "Hello", proxy });
+} catch (error) {
+  if (error instanceof TweetAPIError && error.code === ErrorCode.ACCOUNT_LOCKED) {
+    console.log("Unlock the account on X, then try again");
+  }
+}
+```
+
+| `code` | Status | Meaning |
+| --- | --- | --- |
+| `RATE_LIMITED` | 429 | Per-minute limit reached. `retryAfter` gives the seconds until it resets. During login, X can also return it without `Retry-After`. |
+| `QUOTA_EXHAUSTED` | 429 | Plan allowance or prepaid balance used up |
+| `SUBSCRIPTION_INACTIVE` | 429 | Plan expired or inactive |
+| `ACCOUNT_SUSPENDED` | 403 | The account behind `authToken` is suspended |
+| `ACCOUNT_LOCKED` | 403 | The account behind `authToken` is locked |
+| `PROXY_ERROR` | 502 | Your `proxy` refused the connection or could not be reached |
+| `PROXY_TIMEOUT` | 504 | Your `proxy` timed out |
+| `INVALID_CREDENTIALS` | 401 | Login: wrong username or password |
+| `TWO_FACTOR_REQUIRED` | 401 | Login: the account needs `twoFactorSecret` |
+| `INVALID_TWO_FACTOR_CODE` | 401 | Login: the two-factor code was rejected |
+| `EMAIL_VERIFICATION_REQUIRED` | 401 | Login: the account must verify its email first |
+| `LOGIN_RUNTIME_UNAVAILABLE` | 503 | Login: X could not be reached; try again later |
 
 ## Configuration
 

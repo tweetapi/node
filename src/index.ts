@@ -1,8 +1,9 @@
 export { TweetAPI } from "./client";
 export type { TweetAPIOptions } from "./client";
 
-// Error classes
+// Error classes and codes
 export {
+  ErrorCode,
   TweetAPIError,
   AuthenticationError,
   ForbiddenError,

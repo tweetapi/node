@@ -24,6 +24,7 @@ export class XChatResource {
     return this.client.post_<ApiResponse<Record<string, unknown>>>(
       "/tw-v2/xchat/conversations",
       params,
+      { read: true },
     );
   }
 
@@ -40,6 +41,7 @@ export class XChatResource {
     return this.client.post_<ApiResponse<Record<string, unknown>>>(
       "/tw-v2/xchat/history",
       params,
+      { read: true },
     );
   }
 
@@ -48,6 +50,7 @@ export class XChatResource {
     return this.client.post_<ApiResponse<Record<string, unknown>>>(
       "/tw-v2/xchat/can-dm",
       params,
+      { read: true },
     );
   }
 }

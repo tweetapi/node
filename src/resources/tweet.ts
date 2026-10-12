@@ -52,6 +52,7 @@ export class TweetResource {
     return this.client.post_<ApiResponse<unknown>>(
       "/tw-v2/tweet/translate",
       params,
+      { read: true },
     );
   }
 }
