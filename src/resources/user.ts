@@ -32,7 +32,7 @@ export class UserResource {
     return this.client.get<ApiResponse<User>>("/tw-v2/user/by-username", params);
   }
 
-  /** Get multiple user profiles by usernames (comma-separated) */
+  /** Get up to 100 user profiles by usernames (comma-separated) */
   async getByUsernames(params: GetByUsernamesParams) {
     return this.client.get<ApiResponse<User[]>>("/tw-v2/user/by-usernames", params);
   }
@@ -42,7 +42,7 @@ export class UserResource {
     return this.client.get<ApiResponse<User>>("/tw-v2/user/by-id", params);
   }
 
-  /** Get multiple user profiles by user IDs (comma-separated) */
+  /** Get up to 100 user profiles by user IDs */
   async getByUserIds(params: GetByUserIdsParams) {
     return this.client.get<ApiResponse<User[]>>("/tw-v2/user/by-ids", params);
   }

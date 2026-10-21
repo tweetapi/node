@@ -52,9 +52,9 @@ const nextPage = await client.user.getFollowers({
 | Method | Description |
 |--------|-------------|
 | `client.user.getByUsername({ username })` | Get user profile by username |
-| `client.user.getByUsernames({ usernames })` | Get multiple users by usernames (comma-separated) |
+| `client.user.getByUsernames({ usernames })` | Get up to 100 users by usernames (comma-separated) |
 | `client.user.getByUserId({ userId })` | Get user profile by ID |
-| `client.user.getByUserIds({ userIds })` | Get multiple users by IDs (comma-separated) |
+| `client.user.getByUserIds({ userIds })` | Get up to 100 users by IDs |
 | `client.user.getTweets({ userId })` | Get a user's tweets |
 | `client.user.getTweetsAndReplies({ userId })` | Get a user's tweets and replies |
 | `client.user.getFollowing({ userId })` | Get who a user follows |
@@ -83,7 +83,7 @@ const nextPage = await client.user.getFollowers({
 
 | Method | Description |
 |--------|-------------|
-| `client.tweet.getDetailsAndConversation({ tweetId })` | Get tweet details and replies |
+| `client.tweet.getDetailsAndConversation({ tweetId })` | Get tweet details, parent tweets (`ancestors`), and replies |
 | `client.tweet.getDetailsByIds({ ids })` | Get multiple tweets by IDs (max 200) |
 | `client.tweet.getRetweets({ tweetId })` | Get who retweeted a tweet |
 | `client.tweet.getQuotes({ tweetId })` | Get quote tweets |
