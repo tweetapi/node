@@ -12,11 +12,13 @@ import type {
 export class TweetResource {
   constructor(private readonly client: TweetAPI) {}
 
-  /** Get tweet details with conversation thread (replies) */
+  /** Get tweet details, its parent tweets when it is a reply, and a page of replies */
   async getDetailsAndConversation(params: GetTweetDetailsParams) {
     return this.client.get<
       ApiResponse<{
         tweet: Tweet | null;
+        /** Parent tweets above a reply, oldest first. Empty on cursor pages and for non-replies. */
+        ancestors?: Tweet[];
         replies: Tweet[];
         nextCursor?: string;
       }>
