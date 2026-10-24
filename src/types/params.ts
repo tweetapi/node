@@ -232,7 +232,7 @@ export interface DeleteBookmarkParams {
 export interface FollowParams {
   authToken: string;
   userId: string;
-  /** Target's username, so the request comes from their profile page. */
+  /** Optional username of the target account */
   username?: string;
   proxy?: string;
 }
@@ -240,7 +240,7 @@ export interface FollowParams {
 export interface UnfollowParams {
   authToken: string;
   userId: string;
-  /** Target's username, so the request comes from their profile page. */
+  /** Optional username of the target account */
   username?: string;
   proxy?: string;
 }

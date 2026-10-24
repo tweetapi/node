@@ -136,8 +136,8 @@ await client.post.createPostWithMedia({
 | `client.interaction.deleteRetweet({ authToken, tweetId })` | Remove retweet |
 | `client.interaction.bookmark({ authToken, tweetId })` | Bookmark a tweet |
 | `client.interaction.deleteBookmark({ authToken, tweetId })` | Remove bookmark |
-| `client.interaction.follow({ authToken, userId, username })` | Follow a user. `username` is optional; with it, the request comes from their profile page |
-| `client.interaction.unfollow({ authToken, userId, username })` | Unfollow a user. `username` is optional, as for `follow` |
+| `client.interaction.follow({ authToken, userId, username })` | Follow a user. `username` is optional |
+| `client.interaction.unfollow({ authToken, userId, username })` | Unfollow a user. `username` is optional |
 | `client.interaction.getFollowRequests({ authToken, cursor?, count?, proxy? })` | List incoming follow-request IDs |
 | `client.interaction.acceptFollowRequest({ authToken, userId, proxy? })` | Accept one incoming follow request |
 | `client.interaction.denyFollowRequest({ authToken, userId, proxy? })` | Deny one incoming follow request |
