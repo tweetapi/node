@@ -232,12 +232,16 @@ export interface DeleteBookmarkParams {
 export interface FollowParams {
   authToken: string;
   userId: string;
+  /** Optional username of the target account */
+  username?: string;
   proxy?: string;
 }
 
 export interface UnfollowParams {
   authToken: string;
   userId: string;
+  /** Optional username of the target account */
+  username?: string;
   proxy?: string;
 }
 
@@ -386,7 +390,8 @@ export interface GetCommunityDetailsParams {
 
 export interface GetCommunityTweetsParams {
   communityId: string;
-  sortBy: string;
+  /** "Relevance" or "Recency". The API defaults to "Relevance". */
+  sortBy?: string;
   cursor?: string;
 }
 
@@ -517,6 +522,10 @@ export interface XChatSendParams {
   authToken: string;
   recipientId: string;
   message: string;
+  /** The three conversation fields are fetched automatically when omitted. */
+  conversationToken?: string;
+  conversationKeyVersion?: string;
+  encryptedConversationKey?: string;
   proxy?: string;
 }
 
