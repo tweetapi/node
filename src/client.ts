@@ -23,6 +23,7 @@ import { ExploreResource } from "./resources/explore";
 import { AuthResource } from "./resources/auth";
 import { XChatResource } from "./resources/xchat";
 import { UnencryptedDMResource } from "./resources/unencrypted-dm";
+import { AccountResource } from "./resources/account";
 
 export interface TweetAPIOptions {
   /** Your TweetAPI API key */
@@ -89,6 +90,8 @@ export class TweetAPI {
   readonly xchat: XChatResource;
   /** Unencrypted direct messages */
   readonly dm: UnencryptedDMResource;
+  /** Units left and rate limit for this API key */
+  readonly account: AccountResource;
 
   constructor(options: TweetAPIOptions) {
     if (!options.apiKey) {
@@ -121,6 +124,7 @@ export class TweetAPI {
     this.auth = new AuthResource(this);
     this.xchat = new XChatResource(this);
     this.dm = new UnencryptedDMResource(this);
+    this.account = new AccountResource(this);
   }
 
   /**

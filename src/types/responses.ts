@@ -509,3 +509,31 @@ export interface LoginResponse {
   };
   timestamp: string;
 }
+
+// ─── Account ─────────────────────────────────────────────────────────────────
+
+export interface AccountUsage {
+  /** Plan units left plus spendable PAYG units */
+  availableUnits: number;
+  /** `null` for a PAYG-only account */
+  plan: AccountPlanUsage | null;
+  /** `null` until a PAYG wallet is funded */
+  payg: AccountPaygBalance | null;
+  rateLimit: {
+    requestsPerMinute: number;
+  };
+}
+
+export interface AccountPlanUsage {
+  active: boolean;
+  requestLimit: number;
+  usedUnits: number;
+  remainingUnits: number;
+  periodEnd: string | null;
+}
+
+export interface AccountPaygBalance {
+  /** Expired PAYG units count as 0 */
+  availableUnits: number;
+  expiresAt: string | null;
+}

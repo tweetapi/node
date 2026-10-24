@@ -136,8 +136,8 @@ await client.post.createPostWithMedia({
 | `client.interaction.deleteRetweet({ authToken, tweetId })` | Remove retweet |
 | `client.interaction.bookmark({ authToken, tweetId })` | Bookmark a tweet |
 | `client.interaction.deleteBookmark({ authToken, tweetId })` | Remove bookmark |
-| `client.interaction.follow({ authToken, userId })` | Follow a user |
-| `client.interaction.unfollow({ authToken, userId })` | Unfollow a user |
+| `client.interaction.follow({ authToken, userId, username })` | Follow a user. `username` is optional; with it, the request comes from their profile page |
+| `client.interaction.unfollow({ authToken, userId, username })` | Unfollow a user. `username` is optional, as for `follow` |
 | `client.interaction.getFollowRequests({ authToken, cursor?, count?, proxy? })` | List incoming follow-request IDs |
 | `client.interaction.acceptFollowRequest({ authToken, userId, proxy? })` | Accept one incoming follow request |
 | `client.interaction.denyFollowRequest({ authToken, userId, proxy? })` | Deny one incoming follow request |
@@ -256,7 +256,7 @@ await client.profile.setPrivacy({
 | Method | Description |
 |--------|-------------|
 | `client.community.getDetails({ communityId })` | Get community details |
-| `client.community.getTweets({ communityId, sortBy })` | Get community tweets |
+| `client.community.getTweets({ communityId, sortBy })` | Get community tweets. `sortBy` is `"Relevance"` (default) or `"Recency"` |
 | `client.community.getMembers({ communityId })` | Get community members |
 | `client.community.search({ query })` | Search communities |
 | `client.community.createPost({ authToken, text, communityId, proxy })` | Post in community |
@@ -318,6 +318,8 @@ await client.community.createQuoteWithMedia({
 | `client.xchat.getHistory({ authToken, conversationId })` | Get conversation history |
 | `client.xchat.canDm({ authToken, userIds })` | Check DM availability |
 
+`client.xchat.send()` also accepts `conversationToken`, `conversationKeyVersion`, and `encryptedConversationKey`. The API fetches them itself when they are omitted.
+
 ### Unencrypted DMs
 
 | Method | Description |
@@ -330,6 +332,23 @@ await client.community.createQuoteWithMedia({
 | `client.dm.getConversation({ authToken, conversationId })` | Get conversation messages |
 | `client.dm.getDmUserUpdates({ authToken, cursor })` | Get DM user updates |
 | `client.dm.acceptConversation({ authToken, conversationId })` | Accept a conversation |
+
+### Account
+
+| Method | Description |
+|--------|-------------|
+| `client.account.getUsage()` | Units left on your API key, and its rate limit |
+
+```typescript
+const { data } = await client.account.getUsage();
+
+console.log(data.availableUnits); // plan units left + spendable PAYG units
+console.log(data.plan?.remainingUnits); // plan is null for a PAYG-only account
+console.log(data.payg?.expiresAt); // payg is null until a PAYG wallet is funded
+console.log(data.rateLimit.requestsPerMinute);
+```
+
+This call costs no units. It only counts toward your per-minute rate limit.
 
 ## Pagination
 

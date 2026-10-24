@@ -27,6 +27,7 @@ export { ExploreResource } from "./resources/explore";
 export { AuthResource } from "./resources/auth";
 export { XChatResource } from "./resources/xchat";
 export { UnencryptedDMResource } from "./resources/unencrypted-dm";
+export { AccountResource } from "./resources/account";
 
 // Response types
 export type {
@@ -58,6 +59,9 @@ export type {
   SpaceStreamInfo,
   Notification,
   LoginResponse,
+  AccountUsage,
+  AccountPlanUsage,
+  AccountPaygBalance,
 } from "./types/responses";
 
 // Common types
