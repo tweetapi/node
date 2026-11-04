@@ -24,6 +24,7 @@ import { AuthResource } from "./resources/auth";
 import { XChatResource } from "./resources/xchat";
 import { UnencryptedDMResource } from "./resources/unencrypted-dm";
 import { AccountResource } from "./resources/account";
+import { TrendsResource } from "./resources/trends";
 
 export interface TweetAPIOptions {
   /** Your TweetAPI API key */
@@ -92,6 +93,8 @@ export class TweetAPI {
   readonly dm: UnencryptedDMResource;
   /** Units left and rate limit for this API key */
   readonly account: AccountResource;
+  /** Trending topics worldwide, by country, or by location */
+  readonly trends: TrendsResource;
 
   constructor(options: TweetAPIOptions) {
     if (!options.apiKey) {
@@ -125,6 +128,7 @@ export class TweetAPI {
     this.xchat = new XChatResource(this);
     this.dm = new UnencryptedDMResource(this);
     this.account = new AccountResource(this);
+    this.trends = new TrendsResource(this);
   }
 
   /**

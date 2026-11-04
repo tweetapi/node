@@ -28,6 +28,7 @@ export { AuthResource } from "./resources/auth";
 export { XChatResource } from "./resources/xchat";
 export { UnencryptedDMResource } from "./resources/unencrypted-dm";
 export { AccountResource } from "./resources/account";
+export { TrendsResource } from "./resources/trends";
 
 // Response types
 export type {
@@ -62,6 +63,9 @@ export type {
   AccountUsage,
   AccountPlanUsage,
   AccountPaygBalance,
+  Trend,
+  TrendsByPlace,
+  TrendLocation,
 } from "./types/responses";
 
 // Common types

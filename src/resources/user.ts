@@ -3,6 +3,7 @@ import type { ApiResponse, PaginatedResponse } from "../types/common";
 import type {
   User,
   Tweet,
+  List,
   UserRelationship,
 } from "../types/responses";
 import type {
@@ -22,6 +23,11 @@ import type {
   GetFollowersIdsParams,
   CheckFollowParams,
   AboutAccountParams,
+  GetUserPhotosParams,
+  GetUserVideosParams,
+  GetUserAffiliatesParams,
+  GetUserListsParams,
+  GetUserListMembershipsParams,
 } from "../types/params";
 
 export class UserResource {
@@ -105,5 +111,30 @@ export class UserResource {
   /** Get account creation details and transparency information */
   async aboutAccount(params: AboutAccountParams) {
     return this.client.get<ApiResponse<Record<string, unknown>>>("/tw-v2/user/about-account", params);
+  }
+
+  /** Get a user's posts with photos, as on the Photos tab of their profile */
+  async getPhotos(params: GetUserPhotosParams) {
+    return this.client.get<PaginatedResponse<Tweet>>("/tw-v2/user/photos", params);
+  }
+
+  /** Get a user's posts with videos, as on the Videos tab of their profile */
+  async getVideos(params: GetUserVideosParams) {
+    return this.client.get<PaginatedResponse<Tweet>>("/tw-v2/user/videos", params);
+  }
+
+  /** Get the accounts affiliated with a business profile */
+  async getAffiliates(params: GetUserAffiliatesParams) {
+    return this.client.get<PaginatedResponse<User>>("/tw-v2/user/affiliates", params);
+  }
+
+  /** Get the Lists on a user's Lists tab. Other accounts can own them; check `owner`. */
+  async getLists(params: GetUserListsParams) {
+    return this.client.get<PaginatedResponse<List>>("/tw-v2/user/lists", params);
+  }
+
+  /** Get the Lists a user has been added to as a member */
+  async getListMemberships(params: GetUserListMembershipsParams) {
+    return this.client.get<PaginatedResponse<List>>("/tw-v2/user/list-memberships", params);
   }
 }

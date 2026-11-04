@@ -478,6 +478,40 @@ export interface SpaceStreamInfo {
   shareUrl: string | null;
 }
 
+// ─── Trends ──────────────────────────────────────────────────────────────────
+
+export interface Trend {
+  name: string;
+  query: string;
+  url: string | null;
+  promoted: boolean;
+  /** `null` whenever X reports no volume */
+  tweetVolume: number | null;
+}
+
+export interface TrendsByPlace {
+  /** The place X answered for */
+  location: {
+    woeid: number;
+    name: string;
+  };
+  asOf: string | null;
+  createdAt: string | null;
+  trends: Trend[];
+}
+
+export interface TrendLocation {
+  woeid: number;
+  name: string;
+  placeType: {
+    code: number;
+    name: string;
+  };
+  country: string | null;
+  countryCode: string | null;
+  parentId: number | null;
+}
+
 // ─── Notification ────────────────────────────────────────────────────────────
 
 export interface Notification {

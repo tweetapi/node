@@ -1,6 +1,6 @@
 import type { TweetAPI } from "../client";
 import type { ActionResponse, ApiResponse, PaginatedResponse } from "../types/common";
-import type { Notification, UserAnalytics } from "../types/responses";
+import type { Notification, Tweet, UserAnalytics } from "../types/responses";
 import type {
   FavoritePostParams,
   UnfavoritePostParams,
@@ -17,6 +17,8 @@ import type {
   RemoveMemberFromListParams,
   GetNotificationsParams,
   GetUserAnalyticsParams,
+  GetBookmarksParams,
+  GetLikesParams,
 } from "../types/params";
 
 export class InteractionResource {
@@ -140,6 +142,22 @@ export class InteractionResource {
   async getUserAnalytics(params: GetUserAnalyticsParams) {
     return this.client.get<ApiResponse<UserAnalytics>>(
       "/tw-v2/interaction/user-analytics",
+      params,
+    );
+  }
+
+  /** Get the posts bookmarked by the `authToken` account */
+  async getBookmarks(params: GetBookmarksParams) {
+    return this.client.get<PaginatedResponse<Tweet>>(
+      "/tw-v2/interaction/bookmarks",
+      params,
+    );
+  }
+
+  /** Get the posts liked by the `authToken` account. `userId` must be that account's ID. */
+  async getLikes(params: GetLikesParams) {
+    return this.client.get<PaginatedResponse<Tweet>>(
+      "/tw-v2/interaction/likes",
       params,
     );
   }

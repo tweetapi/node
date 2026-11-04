@@ -79,6 +79,31 @@ export interface AboutAccountParams {
   username: string;
 }
 
+export interface GetUserPhotosParams {
+  userId: string;
+  cursor?: string;
+}
+
+export interface GetUserVideosParams {
+  userId: string;
+  cursor?: string;
+}
+
+export interface GetUserAffiliatesParams {
+  userId: string;
+  cursor?: string;
+}
+
+export interface GetUserListsParams {
+  userId: string;
+  cursor?: string;
+}
+
+export interface GetUserListMembershipsParams {
+  userId: string;
+  cursor?: string;
+}
+
 // ─── Tweet Params ────────────────────────────────────────────────────────────
 
 export interface GetTweetDetailsParams {
@@ -299,6 +324,20 @@ export interface GetUserAnalyticsParams {
   proxy?: string;
 }
 
+export interface GetBookmarksParams {
+  authToken: string;
+  cursor?: string;
+  proxy?: string;
+}
+
+export interface GetLikesParams {
+  authToken: string;
+  /** Numeric user ID of the account behind `authToken` */
+  userId: string;
+  cursor?: string;
+  proxy?: string;
+}
+
 // ─── List Params ─────────────────────────────────────────────────────────────
 
 export interface GetListDetailsParams {
@@ -481,6 +520,21 @@ export interface GetSpaceByIdParams {
 export interface GetSpaceStreamUrlParams {
   mediaKey: string;
 }
+
+// ─── Trends Params ───────────────────────────────────────────────────────────
+
+/** Pass `country` or `woeid`, not both. Omit both for worldwide trends. */
+export type GetTrendsParams =
+  | {
+      /** Two-letter country code, such as "US" */
+      country?: string;
+      woeid?: never;
+    }
+  | {
+      /** Where On Earth ID from `trends.getLocations()`; 1 is worldwide */
+      woeid?: string | number;
+      country?: never;
+    };
 
 // ─── Explore Params ──────────────────────────────────────────────────────────
 
