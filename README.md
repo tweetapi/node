@@ -383,7 +383,7 @@ await client.community.createQuoteWithMedia({
 |--------|-------------|
 | `client.explore.search({ query, type })` | Search tweets/users/photos/videos |
 
-`type` is `Top`, `Latest`, `People`, `Photos` or `Videos`. `Latest`, `Photos` and `Videos` return tweets, `People` returns users, and `Top` returns items shaped `{ type: "tweet" | "user", content }`. With a literal `type`, the result is typed to match.
+`type` is `Top`, `Latest`, `People`, `Photos` or `Videos`. `Latest`, `Photos` and `Videos` return tweets, `People` returns users, and `Top` returns items shaped `{ type: "tweet" | "user", content }`. With a literal `type`, the result is typed to match; a `type` held in a plain `string` keeps the `Tweet | User` type of earlier versions.
 
 ### Trends
 

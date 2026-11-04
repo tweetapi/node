@@ -3,14 +3,19 @@ import type { PaginatedResponse } from "../types/common";
 import type { SearchTopResult, Tweet, User } from "../types/responses";
 import type { SearchParams } from "../types/params";
 
-/** The item type of a search page for a given `type` */
-export type SearchResult<T extends string> = T extends "Latest" | "Photos" | "Videos"
-  ? Tweet
-  : T extends "People"
-    ? User
-    : T extends "Top"
-      ? SearchTopResult
-      : Tweet | User | SearchTopResult;
+/**
+ * The item type of a search page for a given `type`. A `type` held in a plain `string`
+ * keeps the 2.6.0 type, `Tweet | User`.
+ */
+export type SearchResult<T extends string> = string extends T
+  ? Tweet | User
+  : T extends "Latest" | "Photos" | "Videos"
+    ? Tweet
+    : T extends "People"
+      ? User
+      : T extends "Top"
+        ? SearchTopResult
+        : Tweet | User;
 
 export class ExploreResource {
   constructor(private readonly client: TweetAPI) {}

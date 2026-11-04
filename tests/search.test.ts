@@ -49,7 +49,16 @@ describe("explore.search", () => {
     expectTypeOf(client.explore.search({ query: "q", type: "Videos" })).resolves.toEqualTypeOf<PaginatedResponse<Tweet>>();
     expectTypeOf(client.explore.search({ query: "q", type: "People" })).resolves.toEqualTypeOf<PaginatedResponse<User>>();
     expectTypeOf(client.explore.search({ query: "q", type: "Top" })).resolves.toEqualTypeOf<PaginatedResponse<SearchTopResult>>();
-    expectTypeOf(search).returns.resolves.toEqualTypeOf<PaginatedResponse<Tweet | User | SearchTopResult>>();
+    expectTypeOf(search).returns.resolves.toEqualTypeOf<PaginatedResponse<Tweet | User>>();
+  });
+
+  it("keeps the 2.6.0 type when type is a plain string", async () => {
+    // An object literal widens type to string, as in code written for 2.6.0.
+    const params = { query: "example", type: "Latest" };
+    const page = await client.explore.search(params);
+
+    expectTypeOf(page).toEqualTypeOf<PaginatedResponse<Tweet | User>>();
+    expect(page.data.map((item) => item.id)).toEqual([]);
   });
 
   it("labels Top results with their type", () => {
