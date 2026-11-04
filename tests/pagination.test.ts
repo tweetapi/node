@@ -91,7 +91,7 @@ describe("paginatePages", () => {
       })
       .mockRejectedValueOnce(new Error("API error"));
 
-    const pages = [];
+    const pages: unknown[] = [];
     await expect(async () => {
       for await (const page of paginatePages(fetcher)) {
         pages.push(page);
