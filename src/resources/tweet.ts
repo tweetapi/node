@@ -7,6 +7,7 @@ import type {
   GetRetweetsParams,
   GetQuotesParams,
   TranslateTweetParams,
+  GetHiddenRepliesParams,
 } from "../types/params";
 
 export class TweetResource {
@@ -55,6 +56,14 @@ export class TweetResource {
       "/tw-v2/tweet/translate",
       params,
       { read: true },
+    );
+  }
+
+  /** Get the replies to a tweet that its author has hidden */
+  async getHiddenReplies(params: GetHiddenRepliesParams) {
+    return this.client.get<PaginatedResponse<Tweet>>(
+      "/tw-v2/tweet/hidden-replies",
+      params,
     );
   }
 }

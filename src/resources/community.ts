@@ -11,6 +11,7 @@ import type {
   GetCommunityTweetsParams,
   GetCommunityMembersParams,
   SearchCommunityParams,
+  GetCommunityMediaParams,
   CreateCommunityPostParams,
   CreateCommunityPostWithMediaParams,
   CreateCommunityQuoteParams,
@@ -52,6 +53,14 @@ export class CommunityResource {
   async search(params: SearchCommunityParams) {
     return this.client.get<PaginatedResponse<CommunitySearchResult>>(
       "/tw-v2/community/search",
+      params,
+    );
+  }
+
+  /** Get posts with photos or videos from a community, as on its Media tab */
+  async getMedia(params: GetCommunityMediaParams) {
+    return this.client.get<PaginatedResponse<Tweet>>(
+      "/tw-v2/community/media",
       params,
     );
   }

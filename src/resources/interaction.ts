@@ -1,6 +1,6 @@
 import type { TweetAPI } from "../client";
 import type { ActionResponse, ApiResponse, PaginatedResponse } from "../types/common";
-import type { Notification, Tweet, UserAnalytics } from "../types/responses";
+import type { Notification, Tweet, User, UserAnalytics } from "../types/responses";
 import type {
   FavoritePostParams,
   UnfavoritePostParams,
@@ -19,6 +19,8 @@ import type {
   GetUserAnalyticsParams,
   GetBookmarksParams,
   GetLikesParams,
+  GetBlockedAccountsParams,
+  GetMutedAccountsParams,
 } from "../types/params";
 
 export class InteractionResource {
@@ -158,6 +160,22 @@ export class InteractionResource {
   async getLikes(params: GetLikesParams) {
     return this.client.get<PaginatedResponse<Tweet>>(
       "/tw-v2/interaction/likes",
+      params,
+    );
+  }
+
+  /** Get the accounts blocked by the `authToken` account */
+  async getBlockedAccounts(params: GetBlockedAccountsParams) {
+    return this.client.get<PaginatedResponse<User>>(
+      "/tw-v2/interaction/blocked-accounts",
+      params,
+    );
+  }
+
+  /** Get the accounts muted by the `authToken` account */
+  async getMutedAccounts(params: GetMutedAccountsParams) {
+    return this.client.get<PaginatedResponse<User>>(
+      "/tw-v2/interaction/muted-accounts",
       params,
     );
   }

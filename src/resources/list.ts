@@ -9,6 +9,7 @@ import type {
   GetListMembersParams,
   GetListTweetsParams,
   RemoveListMemberParams,
+  SearchListParams,
 } from "../types/params";
 
 export class ListResource {
@@ -32,6 +33,11 @@ export class ListResource {
   /** Get followers of a list */
   async getFollowers(params: GetListFollowersParams) {
     return this.client.get<PaginatedResponse<User>>("/tw-v2/list/followers", params);
+  }
+
+  /** Search Lists by keyword */
+  async search(params: SearchListParams) {
+    return this.client.get<PaginatedResponse<List>>("/tw-v2/list/search", params);
   }
 
   /** Create a list */

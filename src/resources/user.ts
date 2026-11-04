@@ -28,6 +28,9 @@ import type {
   GetUserAffiliatesParams,
   GetUserListsParams,
   GetUserListMembershipsParams,
+  GetUserHighlightsParams,
+  GetUserArticlesParams,
+  GetSimilarAccountsParams,
 } from "../types/params";
 
 export class UserResource {
@@ -136,5 +139,20 @@ export class UserResource {
   /** Get the Lists a user has been added to as a member */
   async getListMemberships(params: GetUserListMembershipsParams) {
     return this.client.get<PaginatedResponse<List>>("/tw-v2/user/list-memberships", params);
+  }
+
+  /** Get the posts on a user's Highlights tab */
+  async getHighlights(params: GetUserHighlightsParams) {
+    return this.client.get<PaginatedResponse<Tweet>>("/tw-v2/user/highlights", params);
+  }
+
+  /** Get the posts that published a user's X Articles. `article.text` is empty here. */
+  async getArticles(params: GetUserArticlesParams) {
+    return this.client.get<PaginatedResponse<Tweet>>("/tw-v2/user/articles", params);
+  }
+
+  /** Get the accounts X lists as similar to a user. One page, with no cursor. */
+  async getSimilarAccounts(params: GetSimilarAccountsParams) {
+    return this.client.get<PaginatedResponse<User>>("/tw-v2/user/similar-accounts", params);
   }
 }

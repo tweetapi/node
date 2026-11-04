@@ -104,6 +104,20 @@ export interface GetUserListMembershipsParams {
   cursor?: string;
 }
 
+export interface GetUserHighlightsParams {
+  userId: string;
+  cursor?: string;
+}
+
+export interface GetUserArticlesParams {
+  userId: string;
+  cursor?: string;
+}
+
+export interface GetSimilarAccountsParams {
+  userId: string;
+}
+
 // ─── Tweet Params ────────────────────────────────────────────────────────────
 
 export interface GetTweetDetailsParams {
@@ -129,6 +143,11 @@ export interface GetQuotesParams {
 export interface TranslateTweetParams {
   tweetId: string;
   dstLang: string;
+}
+
+export interface GetHiddenRepliesParams {
+  tweetId: string;
+  cursor?: string;
 }
 
 // ─── Post Params ─────────────────────────────────────────────────────────────
@@ -338,6 +357,18 @@ export interface GetLikesParams {
   proxy?: string;
 }
 
+export interface GetBlockedAccountsParams {
+  authToken: string;
+  cursor?: string;
+  proxy?: string;
+}
+
+export interface GetMutedAccountsParams {
+  authToken: string;
+  cursor?: string;
+  proxy?: string;
+}
+
 // ─── List Params ─────────────────────────────────────────────────────────────
 
 export interface GetListDetailsParams {
@@ -356,6 +387,11 @@ export interface GetListMembersParams {
 
 export interface GetListFollowersParams {
   listId: string;
+  cursor?: string;
+}
+
+export interface SearchListParams {
+  query: string;
   cursor?: string;
 }
 
@@ -441,6 +477,11 @@ export interface GetCommunityMembersParams {
 
 export interface SearchCommunityParams {
   query: string;
+  cursor?: string;
+}
+
+export interface GetCommunityMediaParams {
+  communityId: string;
   cursor?: string;
 }
 

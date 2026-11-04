@@ -19,6 +19,14 @@ const reads = [
   { resource: "user", method: "getListMemberships", path: "/tw-v2/user/list-memberships", required: { userId: "44196397" }, optional: { cursor: "CURSOR" } },
   { resource: "interaction", method: "getBookmarks", path: "/tw-v2/interaction/bookmarks", required: { authToken }, optional: { cursor: "CURSOR", proxy } },
   { resource: "interaction", method: "getLikes", path: "/tw-v2/interaction/likes", required: { authToken, userId: "44196397" }, optional: { cursor: "CURSOR", proxy } },
+  { resource: "user", method: "getHighlights", path: "/tw-v2/user/highlights", required: { userId: "44196397" }, optional: { cursor: "CURSOR" } },
+  { resource: "user", method: "getArticles", path: "/tw-v2/user/articles", required: { userId: "44196397" }, optional: { cursor: "CURSOR" } },
+  { resource: "user", method: "getSimilarAccounts", path: "/tw-v2/user/similar-accounts", required: { userId: "44196397" }, optional: {} },
+  { resource: "tweet", method: "getHiddenReplies", path: "/tw-v2/tweet/hidden-replies", required: { tweetId: "1234567890" }, optional: { cursor: "CURSOR" } },
+  { resource: "list", method: "search", path: "/tw-v2/list/search", required: { query: "crypto" }, optional: { cursor: "CURSOR" } },
+  { resource: "community", method: "getMedia", path: "/tw-v2/community/media", required: { communityId: "1493446837214187523" }, optional: { cursor: "CURSOR" } },
+  { resource: "interaction", method: "getBlockedAccounts", path: "/tw-v2/interaction/blocked-accounts", required: { authToken }, optional: { cursor: "CURSOR", proxy } },
+  { resource: "interaction", method: "getMutedAccounts", path: "/tw-v2/interaction/muted-accounts", required: { authToken }, optional: { cursor: "CURSOR", proxy } },
 ];
 
 function jsonResponse(body: unknown) {
@@ -73,5 +81,13 @@ describe("Read return types", () => {
     expectTypeOf(client.user.getListMemberships).returns.toEqualTypeOf<Promise<PaginatedResponse<List>>>();
     expectTypeOf(client.interaction.getBookmarks).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
     expectTypeOf(client.interaction.getLikes).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
+    expectTypeOf(client.user.getHighlights).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
+    expectTypeOf(client.user.getArticles).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
+    expectTypeOf(client.user.getSimilarAccounts).returns.toEqualTypeOf<Promise<PaginatedResponse<User>>>();
+    expectTypeOf(client.tweet.getHiddenReplies).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
+    expectTypeOf(client.list.search).returns.toEqualTypeOf<Promise<PaginatedResponse<List>>>();
+    expectTypeOf(client.community.getMedia).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
+    expectTypeOf(client.interaction.getBlockedAccounts).returns.toEqualTypeOf<Promise<PaginatedResponse<User>>>();
+    expectTypeOf(client.interaction.getMutedAccounts).returns.toEqualTypeOf<Promise<PaginatedResponse<User>>>();
   });
 });
