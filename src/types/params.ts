@@ -235,6 +235,32 @@ export interface DeletePostParams {
   proxy?: string;
 }
 
+export interface PinPostParams {
+  authToken: string;
+  tweetId: string;
+  proxy?: string;
+}
+
+export interface UnpinPostParams {
+  authToken: string;
+  tweetId: string;
+  proxy?: string;
+}
+
+export interface HideReplyParams {
+  authToken: string;
+  /** ID of the reply to hide */
+  tweetId: string;
+  proxy?: string;
+}
+
+export interface UnhideReplyParams {
+  authToken: string;
+  /** ID of the hidden reply */
+  tweetId: string;
+  proxy?: string;
+}
+
 // ─── Interaction Params ──────────────────────────────────────────────────────
 
 export interface FavoritePostParams {
@@ -283,6 +309,47 @@ export interface FollowParams {
 
 export interface UnfollowParams {
   authToken: string;
+  userId: string;
+  /** Optional username of the target account */
+  username?: string;
+  proxy?: string;
+}
+
+export interface BlockParams {
+  authToken: string;
+  userId: string;
+  /** Optional username of the target account */
+  username?: string;
+  proxy?: string;
+}
+
+export interface UnblockParams {
+  authToken: string;
+  userId: string;
+  /** Optional username of the target account */
+  username?: string;
+  proxy?: string;
+}
+
+export interface MuteParams {
+  authToken: string;
+  userId: string;
+  /** Optional username of the target account */
+  username?: string;
+  proxy?: string;
+}
+
+export interface UnmuteParams {
+  authToken: string;
+  userId: string;
+  /** Optional username of the target account */
+  username?: string;
+  proxy?: string;
+}
+
+export interface RemoveFollowerParams {
+  authToken: string;
+  /** ID of the follower to remove */
   userId: string;
   /** Optional username of the target account */
   username?: string;
@@ -413,6 +480,12 @@ export interface RemoveListMemberParams {
   authToken: string;
   listId: string;
   userId: string;
+  proxy?: string;
+}
+
+export interface DeleteListParams {
+  authToken: string;
+  listId: string;
   proxy?: string;
 }
 

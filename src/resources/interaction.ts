@@ -10,6 +10,11 @@ import type {
   DeleteBookmarkParams,
   FollowParams,
   UnfollowParams,
+  BlockParams,
+  UnblockParams,
+  MuteParams,
+  UnmuteParams,
+  RemoveFollowerParams,
   GetFollowRequestsParams,
   AcceptFollowRequestParams,
   DenyFollowRequestParams,
@@ -86,6 +91,46 @@ export class InteractionResource {
   async unfollow(params: UnfollowParams) {
     return this.client.post_<ActionResponse>(
       "/tw-v2/interaction/unfollow",
+      params,
+    );
+  }
+
+  /** Block a user */
+  async block(params: BlockParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/block",
+      params,
+    );
+  }
+
+  /** Unblock a user */
+  async unblock(params: UnblockParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/unblock",
+      params,
+    );
+  }
+
+  /** Mute a user */
+  async mute(params: MuteParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/mute",
+      params,
+    );
+  }
+
+  /** Unmute a user */
+  async unmute(params: UnmuteParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/unmute",
+      params,
+    );
+  }
+
+  /** Make a user stop following you. Only that user can follow you again. */
+  async removeFollower(params: RemoveFollowerParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/remove-follower",
       params,
     );
   }

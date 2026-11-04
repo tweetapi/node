@@ -7,6 +7,10 @@ import type {
   ReplyPostParams,
   ReplyPostWithMediaParams,
   DeletePostParams,
+  PinPostParams,
+  UnpinPostParams,
+  HideReplyParams,
+  UnhideReplyParams,
 } from "../types/params";
 
 export class PostResource {
@@ -56,6 +60,41 @@ export class PostResource {
   async deletePost(params: DeletePostParams) {
     return this.client.post_<ActionResponse>(
       "/tw-v2/interaction/delete-post",
+      params,
+    );
+  }
+
+  /**
+   * Pin one of your tweets to the top of your profile. `metadata.added_to_highlights`
+   * says whether X also added it to your Highlights.
+   */
+  async pinPost(params: PinPostParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/pin-post",
+      params,
+    );
+  }
+
+  /** Unpin a tweet from your profile */
+  async unpinPost(params: UnpinPostParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/unpin-post",
+      params,
+    );
+  }
+
+  /** Hide a reply to one of your tweets. `tweetId` is the reply. */
+  async hideReply(params: HideReplyParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/hide-reply",
+      params,
+    );
+  }
+
+  /** Show a hidden reply to one of your tweets again */
+  async unhideReply(params: UnhideReplyParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/unhide-reply",
       params,
     );
   }

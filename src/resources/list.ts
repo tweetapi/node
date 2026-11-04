@@ -4,6 +4,7 @@ import type { List, Tweet, User } from "../types/responses";
 import type {
   AddListMemberParams,
   CreateListParams,
+  DeleteListParams,
   GetListDetailsParams,
   GetListFollowersParams,
   GetListMembersParams,
@@ -43,6 +44,11 @@ export class ListResource {
   /** Create a list */
   async create(params: CreateListParams) {
     return this.client.post_<ApiResponse<List>>("/tw-v2/list/create", params);
+  }
+
+  /** Delete a list the `authToken` account owns. This cannot be undone. */
+  async delete(params: DeleteListParams) {
+    return this.client.post_<ActionResponse>("/tw-v2/list/delete", params);
   }
 
   /** Add a user to a list */
