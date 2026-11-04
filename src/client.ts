@@ -79,9 +79,9 @@ export class TweetAPI {
   readonly user: UserResource;
   /** Tweet details, retweets, quotes, translate */
   readonly tweet: TweetResource;
-  /** Create, reply, and delete posts */
+  /** Create, reply, delete and pin posts, hide replies, upload media */
   readonly post: PostResource;
-  /** Likes, retweets, bookmarks, follows, list members, notifications */
+  /** Likes, retweets, bookmarks, follows, blocks, mutes, polls, list members, notifications */
   readonly interaction: InteractionResource;
   /** List details, tweets, members, followers */
   readonly list: ListResource;
