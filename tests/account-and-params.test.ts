@@ -118,4 +118,16 @@ describe("Optional parameters", () => {
     await client.xchat.send(base);
     expect(lastBody()).toEqual(base);
   });
+
+  it("sends proxy on list.create only when set", async () => {
+    mockFetch.mockImplementation(async () => jsonResponse({ data: { id: "1234567890", name: "Research" } }));
+    const list = { authToken: "AUTH_TOKEN", name: "Research", isPrivate: true };
+
+    await client.list.create({ ...list, proxy: "host:port@user:pass" });
+    expect(mockFetch.mock.calls[0][0]).toBe("https://api.tweetapi.com/tw-v2/list/create");
+    expect(lastBody()).toEqual({ ...list, proxy: "host:port@user:pass" });
+
+    await client.list.create(list);
+    expect(lastBody()).toEqual(list);
+  });
 });

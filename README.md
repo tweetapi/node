@@ -282,6 +282,8 @@ Both mutations return `ActionResponse`, with `data.id` and `data.metadata.user_i
 | `client.list.addMember({ authToken, listId, userId })` | Add user to list |
 | `client.list.removeMember({ authToken, listId, userId })` | Remove user from list |
 
+`create`, `delete`, `addMember` and `removeMember` accept an optional `proxy` in `host:port@user:pass` format.
+
 ```typescript
 const list = await client.list.create({
   authToken: "TWITTER_AUTH_TOKEN",

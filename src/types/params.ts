@@ -505,6 +505,7 @@ export interface CreateListParams {
   name: string;
   description?: string;
   isPrivate?: boolean;
+  proxy?: string;
 }
 
 export interface AddListMemberParams {
