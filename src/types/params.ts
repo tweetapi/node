@@ -177,6 +177,8 @@ export interface ReplyOption {
   regions?: ReplyRegionCode[];
 }
 
+// For a `url`, `type` is optional: the API reads the type from the downloaded file.
+
 export type TweetMediaInput =
   | { media_id: string }
   | { url: string; type?: string }
@@ -378,7 +380,7 @@ export interface RemoveFollowerParams {
   authToken: string;
   /** ID of the follower to remove */
   userId: string;
-  /** Optional username of the target account */
+  /** Optional and not needed: `userId` identifies the follower */
   username?: string;
   proxy?: string;
 }
@@ -692,7 +694,7 @@ export type SearchType = "Top" | "Latest" | "People" | "Photos" | "Videos";
 
 export interface SearchParams {
   query: string;
-  /** One of `SearchType`. The result type follows it when it is a literal. */
+  /** One of `SearchType`. When it is a literal, the result type follows it. */
   type: string;
   cursor?: string;
 }
