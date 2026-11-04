@@ -514,6 +514,13 @@ export interface SpaceStreamInfo {
   shareUrl: string | null;
 }
 
+// ─── Search ──────────────────────────────────────────────────────────────────
+
+/** One result of a `Top` search: a tweet or a user, labelled by `type` */
+export type SearchTopResult =
+  | { type: "tweet"; content: Tweet }
+  | { type: "user"; content: User };
+
 // ─── Trends ──────────────────────────────────────────────────────────────────
 
 export interface Trend {

@@ -688,8 +688,11 @@ export type GetTrendsParams =
 
 // ─── Explore Params ──────────────────────────────────────────────────────────
 
+export type SearchType = "Top" | "Latest" | "People" | "Photos" | "Videos";
+
 export interface SearchParams {
   query: string;
+  /** One of `SearchType`. The result type follows it when it is a literal. */
   type: string;
   cursor?: string;
 }

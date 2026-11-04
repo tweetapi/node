@@ -9,14 +9,11 @@ async function main() {
     type: "Latest",
   });
 
-  console.log(`Found ${results.meta.resultCount} results in ${results.meta.completedIn}ms\n`);
+  console.log(`Found ${results.data.length} tweets\n`);
 
-  for (const item of results.data) {
-    if ("text" in item && "author" in item) {
-      const tweet = item as any;
-      console.log(`@${tweet.author.username}: ${tweet.text.slice(0, 100)}`);
-      console.log(`  ♥ ${tweet.likeCount}  🔁 ${tweet.retweetCount}  💬 ${tweet.replyCount}\n`);
-    }
+  for (const tweet of results.data) {
+    console.log(`@${tweet.author.username}: ${tweet.text.slice(0, 100)}`);
+    console.log(`  ♥ ${tweet.likeCount}  🔁 ${tweet.retweetCount}  💬 ${tweet.replyCount}\n`);
   }
 
   // Paginate if more results exist
