@@ -79,6 +79,45 @@ export interface AboutAccountParams {
   username: string;
 }
 
+export interface GetUserPhotosParams {
+  userId: string;
+  cursor?: string;
+}
+
+export interface GetUserVideosParams {
+  userId: string;
+  cursor?: string;
+}
+
+export interface GetUserAffiliatesParams {
+  userId: string;
+  cursor?: string;
+}
+
+export interface GetUserListsParams {
+  userId: string;
+  cursor?: string;
+}
+
+export interface GetUserListMembershipsParams {
+  userId: string;
+  cursor?: string;
+}
+
+export interface GetUserHighlightsParams {
+  userId: string;
+  cursor?: string;
+}
+
+export interface GetUserArticlesParams {
+  userId: string;
+  cursor?: string;
+}
+
+export interface GetSimilarAccountsParams {
+  userId: string;
+}
+
 // ─── Tweet Params ────────────────────────────────────────────────────────────
 
 export interface GetTweetDetailsParams {
@@ -104,6 +143,11 @@ export interface GetQuotesParams {
 export interface TranslateTweetParams {
   tweetId: string;
   dstLang: string;
+}
+
+export interface GetHiddenRepliesParams {
+  tweetId: string;
+  cursor?: string;
 }
 
 // ─── Post Params ─────────────────────────────────────────────────────────────
@@ -133,6 +177,8 @@ export interface ReplyOption {
   regions?: ReplyRegionCode[];
 }
 
+// For a `url`, `type` is optional: the API reads the type from the downloaded file.
+
 export type TweetMediaInput =
   | { media_id: string }
   | { url: string; type?: string }
@@ -142,12 +188,26 @@ export type ProfileMediaInput =
   | { url: string; type?: string }
   | { data: string; type: string };
 
+/** One photo, GIF or video for `post.uploadMedia` */
+export type MediaUploadInput =
+  | { url: string; type?: string }
+  | { data: string; type: string };
+
+export interface PollInput {
+  /** 2 to 4 choices of up to 25 characters each */
+  choices: string[];
+  /** 5 to 10080 minutes (7 days) */
+  durationMinutes: number;
+}
+
 export interface CreatePostParams {
   authToken: string;
   text: string;
   proxy: string;
   disableLinkPreview?: boolean;
   replyOption?: ReplyOption;
+  /** Can't be combined with `disableLinkPreview`. A post with a poll is limited to 280 characters. */
+  poll?: PollInput;
 }
 
 export interface CreatePostQuoteParams {
@@ -189,6 +249,45 @@ export interface DeletePostParams {
   authToken: string;
   tweetId: string;
   proxy?: string;
+}
+
+export interface PinPostParams {
+  authToken: string;
+  tweetId: string;
+  proxy?: string;
+}
+
+export interface UnpinPostParams {
+  authToken: string;
+  tweetId: string;
+  proxy?: string;
+}
+
+export interface HideReplyParams {
+  authToken: string;
+  /** ID of the reply to hide */
+  tweetId: string;
+  proxy?: string;
+}
+
+export interface UnhideReplyParams {
+  authToken: string;
+  /** ID of the hidden reply */
+  tweetId: string;
+  proxy?: string;
+}
+
+export interface UploadMediaParams {
+  authToken: string;
+  proxy: string;
+  media: MediaUploadInput;
+}
+
+export interface GetMediaStatusParams {
+  authToken: string;
+  proxy: string;
+  /** `mediaId` returned by `post.uploadMedia` */
+  mediaId: string;
 }
 
 // ─── Interaction Params ──────────────────────────────────────────────────────
@@ -242,6 +341,56 @@ export interface UnfollowParams {
   userId: string;
   /** Optional username of the target account */
   username?: string;
+  proxy?: string;
+}
+
+export interface BlockParams {
+  authToken: string;
+  userId: string;
+  /** Optional username of the target account */
+  username?: string;
+  proxy?: string;
+}
+
+export interface UnblockParams {
+  authToken: string;
+  userId: string;
+  /** Optional username of the target account */
+  username?: string;
+  proxy?: string;
+}
+
+export interface MuteParams {
+  authToken: string;
+  userId: string;
+  /** Optional username of the target account */
+  username?: string;
+  proxy?: string;
+}
+
+export interface UnmuteParams {
+  authToken: string;
+  userId: string;
+  /** Optional username of the target account */
+  username?: string;
+  proxy?: string;
+}
+
+export interface RemoveFollowerParams {
+  authToken: string;
+  /** ID of the follower to remove */
+  userId: string;
+  /** Optional and not needed: `userId` identifies the follower */
+  username?: string;
+  proxy?: string;
+}
+
+export interface VotePollParams {
+  authToken: string;
+  /** ID of the post with the poll */
+  tweetId: string;
+  /** Option to vote for, an integer from 1 to 4 as numbered on x.com */
+  choice: number;
   proxy?: string;
 }
 
@@ -299,6 +448,32 @@ export interface GetUserAnalyticsParams {
   proxy?: string;
 }
 
+export interface GetBookmarksParams {
+  authToken: string;
+  cursor?: string;
+  proxy?: string;
+}
+
+export interface GetLikesParams {
+  authToken: string;
+  /** Numeric user ID of the account behind `authToken` */
+  userId: string;
+  cursor?: string;
+  proxy?: string;
+}
+
+export interface GetBlockedAccountsParams {
+  authToken: string;
+  cursor?: string;
+  proxy?: string;
+}
+
+export interface GetMutedAccountsParams {
+  authToken: string;
+  cursor?: string;
+  proxy?: string;
+}
+
 // ─── List Params ─────────────────────────────────────────────────────────────
 
 export interface GetListDetailsParams {
@@ -320,6 +495,11 @@ export interface GetListFollowersParams {
   cursor?: string;
 }
 
+export interface SearchListParams {
+  query: string;
+  cursor?: string;
+}
+
 export interface CreateListParams {
   authToken: string;
   name: string;
@@ -338,6 +518,12 @@ export interface RemoveListMemberParams {
   authToken: string;
   listId: string;
   userId: string;
+  proxy?: string;
+}
+
+export interface DeleteListParams {
+  authToken: string;
+  listId: string;
   proxy?: string;
 }
 
@@ -402,6 +588,11 @@ export interface GetCommunityMembersParams {
 
 export interface SearchCommunityParams {
   query: string;
+  cursor?: string;
+}
+
+export interface GetCommunityMediaParams {
+  communityId: string;
   cursor?: string;
 }
 
@@ -482,10 +673,28 @@ export interface GetSpaceStreamUrlParams {
   mediaKey: string;
 }
 
+// ─── Trends Params ───────────────────────────────────────────────────────────
+
+/** Pass `country` or `woeid`, not both. Omit both for worldwide trends. */
+export type GetTrendsParams =
+  | {
+      /** Two-letter country code, such as "US" */
+      country?: string;
+      woeid?: never;
+    }
+  | {
+      /** Where On Earth ID from `trends.getLocations()`; 1 is worldwide */
+      woeid?: string | number;
+      country?: never;
+    };
+
 // ─── Explore Params ──────────────────────────────────────────────────────────
+
+export type SearchType = "Top" | "Latest" | "People" | "Photos" | "Videos";
 
 export interface SearchParams {
   query: string;
+  /** One of `SearchType`. When it is a literal, the result type follows it. */
   type: string;
   cursor?: string;
 }

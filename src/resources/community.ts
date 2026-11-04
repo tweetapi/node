@@ -11,6 +11,7 @@ import type {
   GetCommunityTweetsParams,
   GetCommunityMembersParams,
   SearchCommunityParams,
+  GetCommunityMediaParams,
   CreateCommunityPostParams,
   CreateCommunityPostWithMediaParams,
   CreateCommunityQuoteParams,
@@ -56,6 +57,14 @@ export class CommunityResource {
     );
   }
 
+  /** Get posts with photos or videos from a community, as on its Media tab */
+  async getMedia(params: GetCommunityMediaParams) {
+    return this.client.get<PaginatedResponse<Tweet>>(
+      "/tw-v2/community/media",
+      params,
+    );
+  }
+
   /** Create a post in a community */
   async createPost(params: CreateCommunityPostParams) {
     return this.client.post_<ActionResponse>(
@@ -69,6 +78,7 @@ export class CommunityResource {
     return this.client.post_<ActionResponse>(
       "/tw-v2/interaction/create-community-post-with-media",
       params,
+      { media: true },
     );
   }
 
@@ -85,6 +95,7 @@ export class CommunityResource {
     return this.client.post_<ActionResponse>(
       "/tw-v2/interaction/create-community-quote-with-media",
       params,
+      { media: true },
     );
   }
 
@@ -101,6 +112,7 @@ export class CommunityResource {
     return this.client.post_<ActionResponse>(
       "/tw-v2/interaction/reply-community-post-with-media",
       params,
+      { media: true },
     );
   }
 

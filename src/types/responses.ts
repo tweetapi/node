@@ -287,6 +287,42 @@ export interface VideoVariant {
   url: string;
 }
 
+// ─── Media Upload ────────────────────────────────────────────────────────────
+
+export type MediaProcessingState = "pending" | "in_progress" | "succeeded" | "failed";
+
+export interface MediaProcessingError {
+  code: number;
+  name: string;
+  message: string;
+}
+
+export interface UploadedMedia {
+  /** Pass it as `media_id` in a post with media */
+  mediaId: string;
+  mediaKey: string | null;
+  type: "image" | "gif" | "video";
+  /** File size in bytes */
+  size: number;
+  state: MediaProcessingState;
+  /** 0 to 100, or `null` when X doesn't report it */
+  progressPercent: number | null;
+  /** Seconds to wait before calling `post.getMediaStatus` */
+  checkAfterSecs: number | null;
+  /** Seconds until X discards the upload if no post uses it */
+  expiresAfterSecs: number | null;
+}
+
+export interface MediaStatus {
+  mediaId: string;
+  state: MediaProcessingState;
+  progressPercent: number | null;
+  checkAfterSecs: number | null;
+  /** Set when `state` is "failed"; the response is still a 200 */
+  error: MediaProcessingError | null;
+  expiresAfterSecs: number | null;
+}
+
 // ─── Poll ────────────────────────────────────────────────────────────────────
 
 export interface Poll {
@@ -476,6 +512,47 @@ export interface SpaceStreamInfo {
   status: string;
   streamType: string;
   shareUrl: string | null;
+}
+
+// ─── Search ──────────────────────────────────────────────────────────────────
+
+/** One result of a `Top` search: a tweet or a user, labelled by `type` */
+export type SearchTopResult =
+  | { type: "tweet"; content: Tweet }
+  | { type: "user"; content: User };
+
+// ─── Trends ──────────────────────────────────────────────────────────────────
+
+export interface Trend {
+  name: string;
+  query: string;
+  url: string | null;
+  promoted: boolean;
+  /** `null` whenever X reports no volume */
+  tweetVolume: number | null;
+}
+
+export interface TrendsByPlace {
+  /** The place X answered for */
+  location: {
+    woeid: number;
+    name: string;
+  };
+  asOf: string | null;
+  createdAt: string | null;
+  trends: Trend[];
+}
+
+export interface TrendLocation {
+  woeid: number;
+  name: string;
+  placeType: {
+    code: number;
+    name: string;
+  };
+  country: string | null;
+  countryCode: string | null;
+  parentId: number | null;
 }
 
 // ─── Notification ────────────────────────────────────────────────────────────

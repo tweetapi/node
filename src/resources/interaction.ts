@@ -1,6 +1,6 @@
 import type { TweetAPI } from "../client";
 import type { ActionResponse, ApiResponse, PaginatedResponse } from "../types/common";
-import type { Notification, UserAnalytics } from "../types/responses";
+import type { Notification, Tweet, User, UserAnalytics } from "../types/responses";
 import type {
   FavoritePostParams,
   UnfavoritePostParams,
@@ -10,6 +10,12 @@ import type {
   DeleteBookmarkParams,
   FollowParams,
   UnfollowParams,
+  BlockParams,
+  UnblockParams,
+  MuteParams,
+  UnmuteParams,
+  RemoveFollowerParams,
+  VotePollParams,
   GetFollowRequestsParams,
   AcceptFollowRequestParams,
   DenyFollowRequestParams,
@@ -17,6 +23,10 @@ import type {
   RemoveMemberFromListParams,
   GetNotificationsParams,
   GetUserAnalyticsParams,
+  GetBookmarksParams,
+  GetLikesParams,
+  GetBlockedAccountsParams,
+  GetMutedAccountsParams,
 } from "../types/params";
 
 export class InteractionResource {
@@ -86,6 +96,54 @@ export class InteractionResource {
     );
   }
 
+  /** Block a user */
+  async block(params: BlockParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/block",
+      params,
+    );
+  }
+
+  /** Unblock a user */
+  async unblock(params: UnblockParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/unblock",
+      params,
+    );
+  }
+
+  /** Mute a user */
+  async mute(params: MuteParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/mute",
+      params,
+    );
+  }
+
+  /** Unmute a user */
+  async unmute(params: UnmuteParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/unmute",
+      params,
+    );
+  }
+
+  /** Make a user stop following you. Only that user can follow you again. */
+  async removeFollower(params: RemoveFollowerParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/remove-follower",
+      params,
+    );
+  }
+
+  /** Vote in a poll. `choice` is 1 to 4, in the order x.com shows the options. */
+  async votePoll(params: VotePollParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/vote-poll",
+      params,
+    );
+  }
+
   /** List incoming follow-request IDs for the authenticated account. */
   async getFollowRequests(params: GetFollowRequestsParams): Promise<PaginatedResponse<string>> {
     return this.client.get<PaginatedResponse<string>>(
@@ -140,6 +198,38 @@ export class InteractionResource {
   async getUserAnalytics(params: GetUserAnalyticsParams) {
     return this.client.get<ApiResponse<UserAnalytics>>(
       "/tw-v2/interaction/user-analytics",
+      params,
+    );
+  }
+
+  /** Get the posts bookmarked by the `authToken` account */
+  async getBookmarks(params: GetBookmarksParams) {
+    return this.client.get<PaginatedResponse<Tweet>>(
+      "/tw-v2/interaction/bookmarks",
+      params,
+    );
+  }
+
+  /** Get the posts liked by the `authToken` account. `userId` must be that account's ID. */
+  async getLikes(params: GetLikesParams) {
+    return this.client.get<PaginatedResponse<Tweet>>(
+      "/tw-v2/interaction/likes",
+      params,
+    );
+  }
+
+  /** Get the accounts blocked by the `authToken` account */
+  async getBlockedAccounts(params: GetBlockedAccountsParams) {
+    return this.client.get<PaginatedResponse<User>>(
+      "/tw-v2/interaction/blocked-accounts",
+      params,
+    );
+  }
+
+  /** Get the accounts muted by the `authToken` account */
+  async getMutedAccounts(params: GetMutedAccountsParams) {
+    return this.client.get<PaginatedResponse<User>>(
+      "/tw-v2/interaction/muted-accounts",
       params,
     );
   }

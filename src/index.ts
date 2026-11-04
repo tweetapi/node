@@ -24,10 +24,12 @@ export { ProfileResource } from "./resources/profile";
 export { CommunityResource } from "./resources/community";
 export { SpaceResource } from "./resources/space";
 export { ExploreResource } from "./resources/explore";
+export type { SearchResult } from "./resources/explore";
 export { AuthResource } from "./resources/auth";
 export { XChatResource } from "./resources/xchat";
 export { UnencryptedDMResource } from "./resources/unencrypted-dm";
 export { AccountResource } from "./resources/account";
+export { TrendsResource } from "./resources/trends";
 
 // Response types
 export type {
@@ -44,6 +46,10 @@ export type {
   Media,
   MediaSize,
   VideoVariant,
+  MediaProcessingState,
+  MediaProcessingError,
+  UploadedMedia,
+  MediaStatus,
   Poll,
   PollOption,
   Card,
@@ -62,6 +68,10 @@ export type {
   AccountUsage,
   AccountPlanUsage,
   AccountPaygBalance,
+  SearchTopResult,
+  Trend,
+  TrendsByPlace,
+  TrendLocation,
 } from "./types/responses";
 
 // Common types

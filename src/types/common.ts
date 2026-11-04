@@ -110,4 +110,8 @@ export type ActionType =
   | "leave_community"
   | "pin_tweet"
   | "unpin_tweet"
+  | "hide_reply"
+  | "unhide_reply"
+  | "remove_follower"
+  | "vote_poll"
   | "accept_conversation";

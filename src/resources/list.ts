@@ -4,11 +4,13 @@ import type { List, Tweet, User } from "../types/responses";
 import type {
   AddListMemberParams,
   CreateListParams,
+  DeleteListParams,
   GetListDetailsParams,
   GetListFollowersParams,
   GetListMembersParams,
   GetListTweetsParams,
   RemoveListMemberParams,
+  SearchListParams,
 } from "../types/params";
 
 export class ListResource {
@@ -34,9 +36,19 @@ export class ListResource {
     return this.client.get<PaginatedResponse<User>>("/tw-v2/list/followers", params);
   }
 
+  /** Search Lists by keyword */
+  async search(params: SearchListParams) {
+    return this.client.get<PaginatedResponse<List>>("/tw-v2/list/search", params);
+  }
+
   /** Create a list */
   async create(params: CreateListParams) {
     return this.client.post_<ApiResponse<List>>("/tw-v2/list/create", params);
+  }
+
+  /** Delete a list the `authToken` account owns. This cannot be undone. */
+  async delete(params: DeleteListParams) {
+    return this.client.post_<ActionResponse>("/tw-v2/list/delete", params);
   }
 
   /** Add a user to a list */

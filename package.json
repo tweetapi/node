@@ -1,6 +1,6 @@
 {
   "name": "tweetapi-node",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "Node.js and TypeScript SDK for TweetAPI's Twitter/X data and account API",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -21,7 +21,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src/",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.check.json",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

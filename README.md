@@ -1,6 +1,6 @@
 # TweetAPI Node.js SDK
 
-`tweetapi-node` is the Node.js and TypeScript SDK for [TweetAPI](https://tweetapi.com?utm_source=github&utm_medium=readme&utm_campaign=node-sdk). It includes typed methods for profiles, tweets, lists, communities, Spaces, direct messages, search, and authenticated account actions.
+`tweetapi-node` is the Node.js and TypeScript SDK for [TweetAPI](https://tweetapi.com?utm_source=github&utm_medium=readme&utm_campaign=node-sdk). It includes typed methods for profiles, tweets, lists, communities, Spaces, trends, direct messages, search, and authenticated account actions.
 
 ## Install
 
@@ -41,6 +41,7 @@ const nextPage = await client.user.getFollowers({
 - `client.profile.updateUsername()` is not automatically retried because username changes are not safe to replay.
 - `client.interaction.acceptFollowRequest()` and `denyFollowRequest()` are never automatically retried. Follow-request reads keep the configured retry behavior.
 - `RateLimitError.retryAfter` and `client.rateLimitInfo` expose the API's `Retry-After` from the last 429 response.
+- Calls that upload a file wait up to `mediaTimeout` (120 seconds by default) instead of `timeout`, because the API can wait for X to process the file before it answers.
 - Error classes distinguish validation, authentication, permission, not-found, rate-limit, server, and connection failures.
 - The client has no runtime dependencies and uses native `fetch` on Node.js 18 or newer.
 - The package provides ESM, CommonJS, and TypeScript declaration builds.
@@ -57,10 +58,18 @@ const nextPage = await client.user.getFollowers({
 | `client.user.getByUserIds({ userIds })` | Get up to 100 users by IDs |
 | `client.user.getTweets({ userId })` | Get a user's tweets |
 | `client.user.getTweetsAndReplies({ userId })` | Get a user's tweets and replies |
+| `client.user.getPhotos({ userId })` | Get a user's posts with photos (Photos tab) |
+| `client.user.getVideos({ userId })` | Get a user's posts with videos (Videos tab) |
+| `client.user.getHighlights({ userId })` | Get the posts on a user's Highlights tab |
+| `client.user.getArticles({ userId })` | Get the posts that published a user's X Articles |
 | `client.user.getFollowing({ userId })` | Get who a user follows |
 | `client.user.getFollowers({ userId })` | Get a user's followers |
 | `client.user.getVerifiedFollowers({ userId })` | Get verified followers |
 | `client.user.getSubscriptions({ userId })` | Get user's subscriptions |
+| `client.user.getAffiliates({ userId })` | Get the accounts affiliated with a business profile |
+| `client.user.getSimilarAccounts({ userId })` | Get the accounts X lists as similar (one page, no cursor) |
+| `client.user.getLists({ userId })` | Get the Lists on a user's Lists tab |
+| `client.user.getListMemberships({ userId })` | Get the Lists a user has been added to |
 | `client.user.getFollowingV1({ userId })` | Get following (v1, supports count) |
 | `client.user.getFollowersV1({ userId })` | Get followers (v1, supports count) |
 | `client.user.getFollowingIds({ userId })` | Get following user IDs |
@@ -87,18 +96,25 @@ const nextPage = await client.user.getFollowers({
 | `client.tweet.getDetailsByIds({ ids })` | Get multiple tweets by IDs (max 200) |
 | `client.tweet.getRetweets({ tweetId })` | Get who retweeted a tweet |
 | `client.tweet.getQuotes({ tweetId })` | Get quote tweets |
+| `client.tweet.getHiddenReplies({ tweetId })` | Get the replies its author has hidden |
 | `client.tweet.translate({ tweetId, dstLang })` | Translate a tweet |
 
 ### Post
 
 | Method | Description |
 |--------|-------------|
-| `client.post.createPost({ authToken, text, proxy, replyOption })` | Create a tweet |
+| `client.post.createPost({ authToken, text, proxy, replyOption, poll })` | Create a tweet, optionally with a poll |
 | `client.post.createPostQuote({ authToken, text, attachmentUrl, proxy, replyOption })` | Create a quote tweet |
 | `client.post.createPostWithMedia({ authToken, text, media, proxy })` | Create a tweet with media |
 | `client.post.replyPost({ authToken, text, tweetId, proxy })` | Reply to a tweet |
 | `client.post.replyPostWithMedia({ authToken, text, tweetId, media, proxy })` | Reply with media |
 | `client.post.deletePost({ authToken, tweetId })` | Delete a tweet |
+| `client.post.pinPost({ authToken, tweetId })` | Pin one of your tweets to your profile |
+| `client.post.unpinPost({ authToken, tweetId })` | Unpin a tweet from your profile |
+| `client.post.hideReply({ authToken, tweetId })` | Hide a reply to one of your tweets |
+| `client.post.unhideReply({ authToken, tweetId })` | Show a hidden reply again |
+| `client.post.uploadMedia({ authToken, proxy, media })` | Upload a photo, GIF or video for a later post |
+| `client.post.getMediaStatus({ authToken, proxy, mediaId })` | Check whether an uploaded video or GIF is ready |
 
 ```typescript
 // Restrict who can reply to a new tweet
@@ -126,6 +142,60 @@ await client.post.createPostWithMedia({
 });
 ```
 
+#### Polls
+
+Pass `poll` to `createPost` with 2 to 4 choices of up to 25 characters, open for 5 to 10080 minutes (7 days). A post with a poll is limited to 280 characters, and `poll` can't be combined with `disableLinkPreview`.
+
+```typescript
+await client.post.createPost({
+  authToken: "TWITTER_AUTH_TOKEN",
+  text: "Which option do you prefer?",
+  proxy: "host:port@user:pass",
+  poll: { choices: ["Option A", "Option B"], durationMinutes: 1440 },
+});
+
+// choice is 1 to 4, in the order x.com shows the options
+await client.interaction.votePoll({
+  authToken: "TWITTER_AUTH_TOKEN",
+  tweetId: "TWEET_ID",
+  choice: 2,
+});
+```
+
+#### Upload media for a later post
+
+`post.uploadMedia()` uploads one photo, GIF or video and returns its `mediaId`. The API waits up to 30 seconds for X to process the file. If `state` is still `pending` or `in_progress`, call `post.getMediaStatus()` after `checkAfterSecs` seconds until it is `succeeded`. Each status check costs one unit. Then pass `mediaId` as `media_id` in the `media` array of a with-media method, using the same `authToken`. X discards an unused upload after `expiresAfterSecs`.
+
+```typescript
+const authToken = "TWITTER_AUTH_TOKEN";
+const proxy = "host:port@user:pass";
+
+const upload = await client.post.uploadMedia({
+  authToken,
+  proxy,
+  media: { url: "https://example.com/video.mp4" },
+});
+const { mediaId } = upload.data;
+
+let { state, checkAfterSecs } = upload.data;
+while (state === "pending" || state === "in_progress") {
+  await new Promise((resolve) => setTimeout(resolve, (checkAfterSecs ?? 5) * 1000));
+  const status = await client.post.getMediaStatus({ authToken, proxy, mediaId });
+  ({ state, checkAfterSecs } = status.data);
+}
+
+if (state === "succeeded") {
+  await client.post.createPostWithMedia({
+    authToken,
+    proxy,
+    text: "Posted with an uploaded video",
+    media: [{ media_id: mediaId }],
+  });
+}
+```
+
+When X can't process the file, `getMediaStatus()` still answers 200 with `state: "failed"`, and `error` holds X's reason. See [`examples/upload-media.ts`](examples/upload-media.ts) for a complete script.
+
 ### Interaction
 
 | Method | Description |
@@ -138,6 +208,16 @@ await client.post.createPostWithMedia({
 | `client.interaction.deleteBookmark({ authToken, tweetId })` | Remove bookmark |
 | `client.interaction.follow({ authToken, userId, username })` | Follow a user. `username` is optional |
 | `client.interaction.unfollow({ authToken, userId, username })` | Unfollow a user. `username` is optional |
+| `client.interaction.block({ authToken, userId, username })` | Block a user. `username` is optional |
+| `client.interaction.unblock({ authToken, userId, username })` | Unblock a user. `username` is optional |
+| `client.interaction.mute({ authToken, userId, username })` | Mute a user. `username` is optional |
+| `client.interaction.unmute({ authToken, userId, username })` | Unmute a user. `username` is optional |
+| `client.interaction.removeFollower({ authToken, userId, username })` | Make a user stop following you. `username` is optional |
+| `client.interaction.votePoll({ authToken, tweetId, choice })` | Vote in a poll. `choice` is 1 to 4 |
+| `client.interaction.getBookmarks({ authToken })` | Get your bookmarks |
+| `client.interaction.getLikes({ authToken, userId })` | Get your likes. `userId` is the ID of the `authToken` account |
+| `client.interaction.getBlockedAccounts({ authToken })` | Get the accounts you block |
+| `client.interaction.getMutedAccounts({ authToken })` | Get the accounts you mute |
 | `client.interaction.getFollowRequests({ authToken, cursor?, count?, proxy? })` | List incoming follow-request IDs |
 | `client.interaction.acceptFollowRequest({ authToken, userId, proxy? })` | Accept one incoming follow request |
 | `client.interaction.denyFollowRequest({ authToken, userId, proxy? })` | Deny one incoming follow request |
@@ -196,7 +276,9 @@ Both mutations return `ActionResponse`, with `data.id` and `data.metadata.user_i
 | `client.list.getTweets({ listId })` | Get tweets in a list |
 | `client.list.getMembers({ listId })` | Get list members |
 | `client.list.getFollowers({ listId })` | Get list followers |
+| `client.list.search({ query })` | Search Lists by keyword |
 | `client.list.create({ authToken, name, description, isPrivate })` | Create a list |
+| `client.list.delete({ authToken, listId })` | Delete a list you own. This cannot be undone |
 | `client.list.addMember({ authToken, listId, userId })` | Add user to list |
 | `client.list.removeMember({ authToken, listId, userId })` | Remove user from list |
 
@@ -259,6 +341,7 @@ await client.profile.setPrivacy({
 | `client.community.getTweets({ communityId, sortBy })` | Get community tweets. `sortBy` is `"Relevance"` (default) or `"Recency"` |
 | `client.community.getMembers({ communityId })` | Get community members |
 | `client.community.search({ query })` | Search communities |
+| `client.community.getMedia({ communityId })` | Get posts with photos or videos (Media tab) |
 | `client.community.createPost({ authToken, text, communityId, proxy })` | Post in community |
 | `client.community.createPostWithMedia({ ... })` | Post with media in community |
 | `client.community.createQuote({ authToken, text, attachmentUrl, communityId, proxy })` | Quote tweet in community |
@@ -299,6 +382,28 @@ await client.community.createQuoteWithMedia({
 | Method | Description |
 |--------|-------------|
 | `client.explore.search({ query, type })` | Search tweets/users/photos/videos |
+
+`type` is `Top`, `Latest`, `People`, `Photos` or `Videos`. `Latest`, `Photos` and `Videos` return tweets, `People` returns users, and `Top` returns items shaped `{ type: "tweet" | "user", content }`. With a literal `type`, the result is typed to match; a `type` held in a plain `string` keeps the `Tweet | User` type of earlier versions.
+
+### Trends
+
+| Method | Description |
+|--------|-------------|
+| `client.trends.get()` | Get worldwide trends |
+| `client.trends.get({ country })` | Get trends in a country, such as `"US"` |
+| `client.trends.get({ woeid })` | Get trends for a location ID from `getLocations()` |
+| `client.trends.getLocations()` | List the locations X serves trends for |
+
+Pass `country` or `woeid`, not both. Not every country is supported. Trends keep X's order, and `tweetVolume` is `null` when X reports no volume, which is the usual case.
+
+```typescript
+const { data } = await client.trends.get({ country: "US" });
+
+console.log(data.location.name); // the place X answered for
+for (const trend of data.trends) {
+  console.log(trend.name, trend.tweetVolume ?? "no volume");
+}
+```
 
 ### Auth
 
@@ -510,6 +615,7 @@ const client = new TweetAPI({
   apiKey: "YOUR_API_KEY",       // Required
   baseUrl: "https://...",       // Optional (default: https://api.tweetapi.com)
   timeout: 30000,               // Optional (default: 30000ms)
+  mediaTimeout: 120000,         // Optional (default: 120000ms, or timeout if longer)
   retry: {                      // Optional (default: { maxRetries: 3 })
     maxRetries: 3,
     initialRetryDelay: 1000,
@@ -518,6 +624,8 @@ const client = new TweetAPI({
   },
 });
 ```
+
+`mediaTimeout` applies to the calls that upload a file: `post.createPostWithMedia()`, `post.replyPostWithMedia()`, `post.uploadMedia()`, the three community with-media methods, `profile.avatar()`, `profile.banner()`, and `dm.sendDm()` when it has media. The API can wait for X to process the file before it answers, so these calls get more time. Every other call uses `timeout`.
 
 ## Requirements
 

@@ -24,6 +24,7 @@ import { AuthResource } from "./resources/auth";
 import { XChatResource } from "./resources/xchat";
 import { UnencryptedDMResource } from "./resources/unencrypted-dm";
 import { AccountResource } from "./resources/account";
+import { TrendsResource } from "./resources/trends";
 
 export interface TweetAPIOptions {
   /** Your TweetAPI API key */
@@ -32,6 +33,11 @@ export interface TweetAPIOptions {
   baseUrl?: string;
   /** Request timeout in milliseconds (default: 30000) */
   timeout?: number;
+  /**
+   * Timeout in milliseconds for calls that upload a file: posts with media, `post.uploadMedia`,
+   * profile avatar and banner, and DMs with media (default: 120000, or `timeout` if longer)
+   */
+  mediaTimeout?: number;
   /** Retry configuration. Pass `false` to disable retries entirely. */
   retry?: RetryOptions | false;
 }
@@ -40,6 +46,8 @@ interface RequestOptions {
   retry?: boolean;
   /** Only reads data, so repeating it after any failure is harmless */
   read?: boolean;
+  /** Uploads a file, so it waits up to `mediaTimeout` instead of `timeout` */
+  media?: boolean;
 }
 
 // Repeating the request cannot succeed: the caller's proxy is down, or the plan is
@@ -60,6 +68,7 @@ export class TweetAPI {
   private readonly apiKey: string;
   private readonly baseUrl: string;
   private readonly timeout: number;
+  private readonly mediaTimeout: number;
   private readonly maxRetries: number;
   private readonly backoffMultiplier: number;
   private readonly initialRetryDelay: number;
@@ -70,9 +79,9 @@ export class TweetAPI {
   readonly user: UserResource;
   /** Tweet details, retweets, quotes, translate */
   readonly tweet: TweetResource;
-  /** Create, reply, and delete posts */
+  /** Create, reply, delete and pin posts, hide replies, upload media */
   readonly post: PostResource;
-  /** Likes, retweets, bookmarks, follows, list members, notifications */
+  /** Likes, retweets, bookmarks, follows, blocks, mutes, polls, list members, notifications */
   readonly interaction: InteractionResource;
   /** List details, tweets, members, followers */
   readonly list: ListResource;
@@ -92,6 +101,8 @@ export class TweetAPI {
   readonly dm: UnencryptedDMResource;
   /** Units left and rate limit for this API key */
   readonly account: AccountResource;
+  /** Trending topics worldwide, by country, or by location */
+  readonly trends: TrendsResource;
 
   constructor(options: TweetAPIOptions) {
     if (!options.apiKey) {
@@ -104,6 +115,8 @@ export class TweetAPI {
       "",
     );
     this.timeout = options.timeout ?? 30000;
+    // The API can wait for X to process an uploaded file before it answers.
+    this.mediaTimeout = options.mediaTimeout ?? Math.max(120000, this.timeout);
 
     const retryOpts =
       options.retry === false ? { maxRetries: 0 } : (options.retry ?? {});
@@ -125,6 +138,7 @@ export class TweetAPI {
     this.xchat = new XChatResource(this);
     this.dm = new UnencryptedDMResource(this);
     this.account = new AccountResource(this);
+    this.trends = new TrendsResource(this);
   }
 
   /**
@@ -195,10 +209,11 @@ export class TweetAPI {
   ): Promise<T> {
     let lastError: TweetAPIError | null = null;
     const maxRetries = options?.retry === false ? 0 : this.maxRetries;
+    const timeout = options?.media ? this.mediaTimeout : this.timeout;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), this.timeout);
+      const timer = setTimeout(() => controller.abort(), timeout);
 
       try {
         const response = await fetch(url, {
@@ -218,7 +233,7 @@ export class TweetAPI {
         return (await response.json()) as T;
       } catch (error) {
         clearTimeout(timer);
-        const normalized = this.normalizeError(error);
+        const normalized = this.normalizeError(error, timeout);
         lastError = normalized;
 
         if (normalized instanceof RateLimitError) {
@@ -242,11 +257,11 @@ export class TweetAPI {
     throw lastError!;
   }
 
-  private normalizeError(error: unknown): TweetAPIError {
+  private normalizeError(error: unknown, timeout: number): TweetAPIError {
     if (error instanceof TweetAPIError) return error;
     if (error instanceof DOMException && error.name === "AbortError") {
       return new ConnectionError(
-        `Request timed out after ${this.timeout}ms`,
+        `Request timed out after ${timeout}ms`,
         error,
       );
     }
