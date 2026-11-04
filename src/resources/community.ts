@@ -78,6 +78,7 @@ export class CommunityResource {
     return this.client.post_<ActionResponse>(
       "/tw-v2/interaction/create-community-post-with-media",
       params,
+      { media: true },
     );
   }
 
@@ -94,6 +95,7 @@ export class CommunityResource {
     return this.client.post_<ActionResponse>(
       "/tw-v2/interaction/create-community-quote-with-media",
       params,
+      { media: true },
     );
   }
 
@@ -110,6 +112,7 @@ export class CommunityResource {
     return this.client.post_<ActionResponse>(
       "/tw-v2/interaction/reply-community-post-with-media",
       params,
+      { media: true },
     );
   }
 

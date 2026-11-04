@@ -19,6 +19,7 @@ export class UnencryptedDMResource {
     return this.client.post_<ActionResponse>(
       "/tw-v2/interaction/send-dm",
       params,
+      { media: Boolean(params.media?.length) },
     );
   }
 

@@ -113,4 +113,5 @@ export type ActionType =
   | "hide_reply"
   | "unhide_reply"
   | "remove_follower"
+  | "vote_poll"
   | "accept_conversation";

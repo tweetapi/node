@@ -15,6 +15,7 @@ import type {
   MuteParams,
   UnmuteParams,
   RemoveFollowerParams,
+  VotePollParams,
   GetFollowRequestsParams,
   AcceptFollowRequestParams,
   DenyFollowRequestParams,
@@ -131,6 +132,14 @@ export class InteractionResource {
   async removeFollower(params: RemoveFollowerParams) {
     return this.client.post_<ActionResponse>(
       "/tw-v2/interaction/remove-follower",
+      params,
+    );
+  }
+
+  /** Vote in a poll. `choice` is 1 to 4, in the order x.com shows the options. */
+  async votePoll(params: VotePollParams) {
+    return this.client.post_<ActionResponse>(
+      "/tw-v2/interaction/vote-poll",
       params,
     );
   }

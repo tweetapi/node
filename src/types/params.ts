@@ -186,12 +186,26 @@ export type ProfileMediaInput =
   | { url: string; type?: string }
   | { data: string; type: string };
 
+/** One photo, GIF or video for `post.uploadMedia` */
+export type MediaUploadInput =
+  | { url: string; type?: string }
+  | { data: string; type: string };
+
+export interface PollInput {
+  /** 2 to 4 choices of up to 25 characters each */
+  choices: string[];
+  /** 5 to 10080 minutes (7 days) */
+  durationMinutes: number;
+}
+
 export interface CreatePostParams {
   authToken: string;
   text: string;
   proxy: string;
   disableLinkPreview?: boolean;
   replyOption?: ReplyOption;
+  /** Can't be combined with `disableLinkPreview`. A post with a poll is limited to 280 characters. */
+  poll?: PollInput;
 }
 
 export interface CreatePostQuoteParams {
@@ -259,6 +273,19 @@ export interface UnhideReplyParams {
   /** ID of the hidden reply */
   tweetId: string;
   proxy?: string;
+}
+
+export interface UploadMediaParams {
+  authToken: string;
+  proxy: string;
+  media: MediaUploadInput;
+}
+
+export interface GetMediaStatusParams {
+  authToken: string;
+  proxy: string;
+  /** `mediaId` returned by `post.uploadMedia` */
+  mediaId: string;
 }
 
 // ─── Interaction Params ──────────────────────────────────────────────────────
@@ -353,6 +380,15 @@ export interface RemoveFollowerParams {
   userId: string;
   /** Optional username of the target account */
   username?: string;
+  proxy?: string;
+}
+
+export interface VotePollParams {
+  authToken: string;
+  /** ID of the post with the poll */
+  tweetId: string;
+  /** Option to vote for, an integer from 1 to 4 as numbered on x.com */
+  choice: number;
   proxy?: string;
 }
 

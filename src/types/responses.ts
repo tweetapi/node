@@ -287,6 +287,42 @@ export interface VideoVariant {
   url: string;
 }
 
+// ─── Media Upload ────────────────────────────────────────────────────────────
+
+export type MediaProcessingState = "pending" | "in_progress" | "succeeded" | "failed";
+
+export interface MediaProcessingError {
+  code: number;
+  name: string;
+  message: string;
+}
+
+export interface UploadedMedia {
+  /** Pass it as `media_id` in a post with media */
+  mediaId: string;
+  mediaKey: string | null;
+  type: "image" | "gif" | "video";
+  /** File size in bytes */
+  size: number;
+  state: MediaProcessingState;
+  /** 0 to 100, or `null` when X doesn't report it */
+  progressPercent: number | null;
+  /** Seconds to wait before calling `post.getMediaStatus` */
+  checkAfterSecs: number | null;
+  /** Seconds until X discards the upload if no post uses it */
+  expiresAfterSecs: number | null;
+}
+
+export interface MediaStatus {
+  mediaId: string;
+  state: MediaProcessingState;
+  progressPercent: number | null;
+  checkAfterSecs: number | null;
+  /** Set when `state` is "failed"; the response is still a 200 */
+  error: MediaProcessingError | null;
+  expiresAfterSecs: number | null;
+}
+
 // ─── Poll ────────────────────────────────────────────────────────────────────
 
 export interface Poll {

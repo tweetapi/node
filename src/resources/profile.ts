@@ -29,12 +29,12 @@ export class ProfileResource {
 
   /** Update the authenticated profile avatar */
   async avatar(params: UpdateProfileAvatarParams) {
-    return this.client.post_<ApiResponse<User>>("/tw-v2/profile/avatar", params);
+    return this.client.post_<ApiResponse<User>>("/tw-v2/profile/avatar", params, { media: true });
   }
 
   /** Update the authenticated profile banner */
   async banner(params: UpdateProfileBannerParams) {
-    return this.client.post_<ApiResponse<User>>("/tw-v2/profile/banner", params);
+    return this.client.post_<ApiResponse<User>>("/tw-v2/profile/banner", params, { media: true });
   }
 
   /** Remove the authenticated profile banner */
