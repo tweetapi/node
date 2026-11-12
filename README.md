@@ -57,10 +57,13 @@ const nextPage = await client.user.getFollowers({
 | `client.user.getByUserId({ userId })` | Get user profile by ID |
 | `client.user.getByUserIds({ userIds })` | Get up to 100 users by IDs |
 | `client.user.getTweets({ userId })` | Get a user's tweets |
-| `client.user.getTweetsAndReplies({ userId })` | Get a user's tweets and replies |
+| `client.user.getTweetsAndReplies({ userId, sortBy })` | Get a user's tweets and replies |
+| `client.user.getPosts({ userId, sortBy })` | Get a user's own posts, with no reposts and no replies to others (Posts tab) |
+| `client.user.getReplies({ userId })` | Get a user's replies and the posts they answer (Replies tab) |
+| `client.user.getReposts({ userId })` | Get the posts a user has reposted (Reposts tab) |
 | `client.user.getPhotos({ userId })` | Get a user's posts with photos (Photos tab) |
 | `client.user.getVideos({ userId })` | Get a user's posts with videos (Videos tab) |
-| `client.user.getHighlights({ userId })` | Get the posts on a user's Highlights tab |
+| `client.user.getHighlights({ userId, sortBy })` | Get the posts on a user's Highlights tab |
 | `client.user.getArticles({ userId })` | Get the posts that published a user's X Articles |
 | `client.user.getFollowing({ userId })` | Get who a user follows |
 | `client.user.getFollowers({ userId })` | Get a user's followers |
@@ -76,6 +79,27 @@ const nextPage = await client.user.getFollowers({
 | `client.user.getFollowersIds({ userId })` | Get follower user IDs |
 | `client.user.checkFollow({ subjectId, targetId })` | Check follow relationship |
 | `client.user.aboutAccount({ username })` | Get account transparency info |
+
+`getPosts`, `getTweetsAndReplies` and `getHighlights` take an optional `sortBy`: `"Recent"` (the default) or `"MostLiked"`, which is X's "Sort by: Most liked" order. The SDK sends `sortBy` only when you set it. Keep the same `sortBy` on every page of one listing. Its type is exported as `UserTimelineSortBy`.
+
+```typescript
+import TweetAPI, { paginate } from "tweetapi-node";
+import type { UserTimelineSortBy } from "tweetapi-node";
+
+const client = new TweetAPI({ apiKey: "YOUR_API_KEY" });
+const sortBy: UserTimelineSortBy = "MostLiked";
+
+for await (const post of paginate(
+  (cursor) => client.user.getPosts({ userId: "USER_ID", sortBy, cursor }),
+  { maxPages: 3 },
+)) {
+  console.log(post.likeCount, post.text);
+}
+```
+
+In `getPosts`, a thread the user wrote comes back as its first post followed by the user's replies in it. In `getReplies`, each of the user's replies comes after the posts it answers, so use each post's `author` and `replyTo` to tell them apart. A reply can come without the post it answers, and its `replyTo.tweetId` still names that post. In `getReposts`, each item has `type: "retweet"`, the user as `author`, and the original post in `retweetedTweet`.
+
+A short page does not mean the listing has ended. Keep passing `nextCursor` until it is `null`, which `paginate()` does for you.
 
 ### Profile
 

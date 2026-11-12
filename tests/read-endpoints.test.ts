@@ -1,6 +1,15 @@
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
-import { TweetAPI } from "../src/index";
-import type { List, PaginatedResponse, Tweet, User } from "../src/index";
+import { TweetAPI, paginate } from "../src/index";
+import type {
+  GetUserHighlightsParams,
+  GetUserPostsParams,
+  GetUserTweetsAndRepliesParams,
+  List,
+  PaginatedResponse,
+  Tweet,
+  User,
+  UserTimelineSortBy,
+} from "../src/index";
 
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
@@ -19,7 +28,11 @@ const reads = [
   { resource: "user", method: "getListMemberships", path: "/tw-v2/user/list-memberships", required: { userId: "44196397" }, optional: { cursor: "CURSOR" } },
   { resource: "interaction", method: "getBookmarks", path: "/tw-v2/interaction/bookmarks", required: { authToken }, optional: { cursor: "CURSOR", proxy } },
   { resource: "interaction", method: "getLikes", path: "/tw-v2/interaction/likes", required: { authToken, userId: "44196397" }, optional: { cursor: "CURSOR", proxy } },
-  { resource: "user", method: "getHighlights", path: "/tw-v2/user/highlights", required: { userId: "44196397" }, optional: { cursor: "CURSOR" } },
+  { resource: "user", method: "getPosts", path: "/tw-v2/user/posts", required: { userId: "44196397" }, optional: { cursor: "CURSOR", sortBy: "MostLiked" } },
+  { resource: "user", method: "getReplies", path: "/tw-v2/user/replies", required: { userId: "44196397" }, optional: { cursor: "CURSOR" } },
+  { resource: "user", method: "getReposts", path: "/tw-v2/user/reposts", required: { userId: "44196397" }, optional: { cursor: "CURSOR" } },
+  { resource: "user", method: "getTweetsAndReplies", path: "/tw-v2/user/tweets-and-replies", required: { userId: "44196397" }, optional: { cursor: "CURSOR", sortBy: "MostLiked" } },
+  { resource: "user", method: "getHighlights", path: "/tw-v2/user/highlights", required: { userId: "44196397" }, optional: { cursor: "CURSOR", sortBy: "MostLiked" } },
   { resource: "user", method: "getArticles", path: "/tw-v2/user/articles", required: { userId: "44196397" }, optional: { cursor: "CURSOR" } },
   { resource: "user", method: "getSimilarAccounts", path: "/tw-v2/user/similar-accounts", required: { userId: "44196397" }, optional: {} },
   { resource: "tweet", method: "getHiddenReplies", path: "/tw-v2/tweet/hidden-replies", required: { tweetId: "1234567890" }, optional: { cursor: "CURSOR" } },
@@ -81,6 +94,10 @@ describe("Read return types", () => {
     expectTypeOf(client.user.getListMemberships).returns.toEqualTypeOf<Promise<PaginatedResponse<List>>>();
     expectTypeOf(client.interaction.getBookmarks).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
     expectTypeOf(client.interaction.getLikes).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
+    expectTypeOf(client.user.getPosts).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
+    expectTypeOf(client.user.getReplies).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
+    expectTypeOf(client.user.getReposts).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
+    expectTypeOf(client.user.getTweetsAndReplies).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
     expectTypeOf(client.user.getHighlights).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
     expectTypeOf(client.user.getArticles).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
     expectTypeOf(client.user.getSimilarAccounts).returns.toEqualTypeOf<Promise<PaginatedResponse<User>>>();
@@ -89,5 +106,52 @@ describe("Read return types", () => {
     expectTypeOf(client.community.getMedia).returns.toEqualTypeOf<Promise<PaginatedResponse<Tweet>>>();
     expectTypeOf(client.interaction.getBlockedAccounts).returns.toEqualTypeOf<Promise<PaginatedResponse<User>>>();
     expectTypeOf(client.interaction.getMutedAccounts).returns.toEqualTypeOf<Promise<PaginatedResponse<User>>>();
+  });
+});
+
+describe("Profile timeline sortBy", () => {
+  const userId = "44196397";
+  const sortable = ["getPosts", "getTweetsAndReplies", "getHighlights"] as const;
+
+  it.each(sortable)("%s sends no sortBy unless the caller sets it", async (method) => {
+    await client.user[method]({ userId });
+    expect(new URL(mockFetch.mock.calls[0][0]).searchParams.has("sortBy")).toBe(false);
+
+    await client.user[method]({ userId, sortBy: "Recent" });
+    expect(new URL(mockFetch.mock.calls[1][0]).searchParams.get("sortBy")).toBe("Recent");
+  });
+
+  it("keeps the caller's sortBy on every page of paginate()", async () => {
+    mockFetch
+      .mockImplementationOnce(async () => jsonResponse({ data: [], pagination: { nextCursor: "PAGE_2", prevCursor: null } }))
+      .mockImplementationOnce(async () => jsonResponse(emptyPage));
+
+    const sortBy: UserTimelineSortBy = "MostLiked";
+    const posts: Tweet[] = [];
+    for await (const post of paginate((cursor) => client.user.getPosts({ userId, sortBy, cursor }))) {
+      posts.push(post);
+    }
+
+    expect(posts).toEqual([]);
+    const queries = mockFetch.mock.calls.map(([url]) => Object.fromEntries(new URL(url).searchParams));
+    expect(queries).toEqual([
+      { userId, sortBy: "MostLiked" },
+      { userId, sortBy: "MostLiked", cursor: "PAGE_2" },
+    ]);
+  });
+
+  it("types sortBy as Recent or MostLiked, only where the API takes it", () => {
+    expectTypeOf<UserTimelineSortBy>().toEqualTypeOf<"Recent" | "MostLiked">();
+    expectTypeOf<GetUserPostsParams["sortBy"]>().toEqualTypeOf<UserTimelineSortBy | undefined>();
+    expectTypeOf<GetUserTweetsAndRepliesParams["sortBy"]>().toEqualTypeOf<UserTimelineSortBy | undefined>();
+    expectTypeOf<GetUserHighlightsParams["sortBy"]>().toEqualTypeOf<UserTimelineSortBy | undefined>();
+
+    // These calls are only type-checked, never run.
+    // @ts-expect-error "Top" is not a profile timeline order
+    void (() => client.user.getPosts({ userId, sortBy: "Top" }));
+    // @ts-expect-error the Replies tab has no sort order
+    void (() => client.user.getReplies({ userId, sortBy: "Recent" }));
+    // @ts-expect-error the Reposts tab has no sort order
+    void (() => client.user.getReposts({ userId, sortBy: "Recent" }));
   });
 });
