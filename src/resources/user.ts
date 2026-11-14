@@ -13,6 +13,9 @@ import type {
   GetByUserIdsParams,
   GetUserTweetsParams,
   GetUserTweetsAndRepliesParams,
+  GetUserPostsParams,
+  GetUserRepliesParams,
+  GetUserRepostsParams,
   GetFollowingParams,
   GetFollowersParams,
   GetVerifiedFollowersParams,
@@ -64,6 +67,32 @@ export class UserResource {
   /** Get a user's tweets and replies */
   async getTweetsAndReplies(params: GetUserTweetsAndRepliesParams) {
     return this.client.get<PaginatedResponse<Tweet>>("/tw-v2/user/tweets-and-replies", params);
+  }
+
+  /**
+   * Get the posts on the Posts tab of a user's X profile. Only the user's own posts come back,
+   * with no reposts and no replies to other people. A thread the user wrote comes back as its
+   * first post followed by the user's replies in it.
+   */
+  async getPosts(params: GetUserPostsParams) {
+    return this.client.get<PaginatedResponse<Tweet>>("/tw-v2/user/posts", params);
+  }
+
+  /**
+   * Get the posts on the Replies tab of a user's X profile. Each of the user's replies comes
+   * after the posts it answers. A reply can come without the post it answers, and its
+   * `replyTo.tweetId` still names that post.
+   */
+  async getReplies(params: GetUserRepliesParams) {
+    return this.client.get<PaginatedResponse<Tweet>>("/tw-v2/user/replies", params);
+  }
+
+  /**
+   * Get the posts on the Reposts tab of a user's X profile. Each item has `type` "retweet",
+   * the user as `author`, and the original post in `retweetedTweet`.
+   */
+  async getReposts(params: GetUserRepostsParams) {
+    return this.client.get<PaginatedResponse<Tweet>>("/tw-v2/user/reposts", params);
   }
 
   /** Get a user's following list (v2 — full user objects) */

@@ -21,7 +21,29 @@ export interface GetUserTweetsParams {
   cursor?: string;
 }
 
+/** Order of a profile timeline. "MostLiked" is X's "Sort by: Most liked" order. */
+export type UserTimelineSortBy = "Recent" | "MostLiked";
+
 export interface GetUserTweetsAndRepliesParams {
+  userId: string;
+  cursor?: string;
+  /** "Recent" or "MostLiked". The API defaults to "Recent". Keep the same value on every page. */
+  sortBy?: UserTimelineSortBy;
+}
+
+export interface GetUserPostsParams {
+  userId: string;
+  cursor?: string;
+  /** "Recent" or "MostLiked". The API defaults to "Recent". Keep the same value on every page. */
+  sortBy?: UserTimelineSortBy;
+}
+
+export interface GetUserRepliesParams {
+  userId: string;
+  cursor?: string;
+}
+
+export interface GetUserRepostsParams {
   userId: string;
   cursor?: string;
 }
@@ -107,6 +129,8 @@ export interface GetUserListMembershipsParams {
 export interface GetUserHighlightsParams {
   userId: string;
   cursor?: string;
+  /** "Recent" or "MostLiked". The API defaults to "Recent". Keep the same value on every page. */
+  sortBy?: UserTimelineSortBy;
 }
 
 export interface GetUserArticlesParams {
